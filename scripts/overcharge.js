@@ -13,6 +13,7 @@
 import { MODULE_ID, MAX_SPELL_LEVEL, overchargePlan, usesCapRules, maxSpellLevel } from "./constants.js";
 import { setting, t, tf } from "./settings.js";
 import { postCard, esc } from "./chat.js";
+import { rollBacklash, forceDamage } from "./backlash.js";
 import { levelCap, totalLevel, veteranActive, hitDiceAvailable, spendHitDice } from "./veteran.js";
 
 export const overchargeEnabled = () => { try { return !!setting("overcharge"); } catch (err) { return false; } };
@@ -50,6 +51,18 @@ export function castableMax(actor) {
   return maxSpellLevel(classes);
 }
 
+/** Highest level that isn't reckless for this spell: what the character could normally cast (or the spell's own level). */
+export function ceilingFor(actor, base) {
+  return Math.max(base, castableMax(actor));
+}
+
+export const recklessEnabled = () => { try { return !!setting("recklessOvercharge"); } catch (err) { return false; } };
+
+/** Highest level that can be chosen (one above the ceiling is a Reckless Overcharge). */
+export function topFor(actor, base) {
+  return Math.min(MAX_SPELL_LEVEL, ceilingFor(actor, base) + (recklessEnabled() ? 1 : 0));
+}
+
 /** Only leveled spells cast by player characters can be overcharged. */
 export function canOvercharge(activity) {
   const item = activity?.item;
@@ -63,8 +76,12 @@ const label = key => t(`Overcharge.${key}`);
 /*  Usage dialog                                */
 /* -------------------------------------------- */
 
-function costText(plan, cap) {
+function costText(plan, cap, reckless = false, target = 0) {
   if (!plan.valid) return t(`Overcharge.Invalid.${plan.reason}`);
+  if (reckless) {
+    const cost = cap ? (plan.slot ? tf("Overcharge.CostSlot", { hd: plan.hd, slot: plan.slot }) : tf("Overcharge.CostHD", { hd: plan.hd })) : tf("Overcharge.CostHD", { hd: plan.hd });
+    return `${cost} ${tf("Overcharge.CostReckless", { dc: 8 + target, dice: plan.hd })}`;
+  }
   if (cap) return plan.slot ? tf("Overcharge.CostSlot", { hd: plan.hd, slot: plan.slot }) : tf("Overcharge.CostHD", { hd: plan.hd });
   return tf("Overcharge.CostBase", { hd: plan.hd, dc: plan.dc });
 }
@@ -82,11 +99,11 @@ export function injectDialog(app, html) {
   const base = Number(activity.item.system.level) || 1;
   app.config ??= {};
   const state = app.config.shr ??= {};
-  state.level = Math.min(Math.max(base, castableMax(actor)), Math.max(base, Number(state.level) || base));
+  state.level = Math.min(topFor(actor, base), Math.max(base, Number(state.level) || base));
   const slots = availableSlots(actor);
 
   const levels = [];
-  const top = Math.max(base, castableMax(actor));
+  const top = topFor(actor, base);
   for (let l = base; l <= top; l++) levels.push(l);
   const opts = (list, sel) => list.map(([v, txt]) => `<option value="${v}" ${String(v) === String(sel) ? "selected" : ""}>${esc(txt)}</option>`).join("");
 
@@ -111,6 +128,7 @@ export function injectDialog(app, html) {
         </select></div>
       </div>
       <p class="shr-oc-cost"></p>
+      <p class="shr-oc-warn" hidden><i class="fa-solid fa-triangle-exclamation"></i> <span></span></p>
       <p class="hint">${esc(tf("Overcharge.Dice", { n: hitDiceAvailable(actor) }))}</p>
     </div>`;
   const anchor = form.querySelector("footer, .form-footer, button[type=submit]")?.closest("footer") ?? null;
@@ -119,10 +137,15 @@ export function injectDialog(app, html) {
   const update = () => {
     const chosen = slots.find(s => s.key === state.slot);
     const plan = overchargePlan({ target: state.level, capRules: cap, slotLevel: chosen?.level ?? null });
+    if (plan.valid && state.level > ceilingFor(actor, base)) { plan.check = false; plan.damage = false; }
     const short = plan.valid && plan.hd > hitDiceAvailable(actor);
-    box.querySelector(".shr-oc-cost").textContent = costText(plan, cap) + (short ? ` ${t("Overcharge.NotEnough")}` : "");
+    box.querySelector(".shr-oc-cost").textContent = costText(plan, cap, state.level > ceilingFor(actor, base), state.level) + (short ? ` ${t("Overcharge.NotEnough")}` : "");
     box.querySelector(".shr-oc-cost").classList.toggle("bad", !plan.valid || short);
     box.querySelector(".shr-oc-fields").hidden = !state.overcharge;
+    const reckless = state.level > ceilingFor(actor, base);
+    const warn = box.querySelector(".shr-oc-warn");
+    warn.hidden = !(state.overcharge && reckless);
+    warn.querySelector("span").textContent = tf("Overcharge.RecklessWarn", { dc: 8 + state.level });
     box.querySelector(".shr-oc-slot").hidden = !(cap && state.level >= 4);
   };
   box.addEventListener("change", event => {
@@ -158,14 +181,6 @@ export function onPreConsumption(activity, usageConfig, messageConfig) {
   return false;
 }
 
-/** Force damage: straight off hit points, past temporary hit points and resistances. */
-async function forceDamage(actor, amount) {
-  const hp = actor.system.attributes.hp;
-  const value = Math.max(0, (Number(hp.value) || 0) - amount);
-  await actor.update({ "system.attributes.hp.value": value });
-  return value;
-}
-
 export async function runOvercharge(activity, config, messageConfig) {
   const item = activity.item;
   const actor = item.actor;
@@ -176,7 +191,10 @@ export async function runOvercharge(activity, config, messageConfig) {
   const plan = overchargePlan({ target, capRules: cap, slotLevel: chosen?.level ?? null });
   if (!plan.valid) return ui.notifications.warn(t(`Overcharge.Invalid.${plan.reason}`));
   if (target < (Number(item.system.level) || 1)) return ui.notifications.warn(t("Overcharge.Invalid.level"));
-  if (target > Math.max(Number(item.system.level) || 1, castableMax(actor))) return ui.notifications.warn(tf("Overcharge.Invalid.tooHigh", { max: castableMax(actor) }));
+  const base = Number(item.system.level) || 1;
+  const ceiling = ceilingFor(actor, base);
+  const reckless = target > ceiling;
+  if (target > topFor(actor, base)) return ui.notifications.warn(tf("Overcharge.Invalid.tooHigh", { max: ceiling }));
   if (plan.hd > hitDiceAvailable(actor)) return ui.notifications.warn(tf("Overcharge.NotEnoughWarn", { hd: plan.hd, have: hitDiceAvailable(actor) }));
 
   // Pay: the slot first (cap rules), then the dice.
@@ -192,7 +210,25 @@ export async function runOvercharge(activity, config, messageConfig) {
 
   let success = true;
   const rolls = [];
-  if (plan.check) {
+  if (reckless) {
+    // Reckless Overcharge: the spell is cast whatever the check says; a failure costs 1d6 Force damage per die spent.
+    const mod = Number(actor.system.attributes?.spell?.mod) || 0;
+    const dc = 8 + target;
+    const check = await new Roll("1d20 + @mod", { mod }).evaluate();
+    rolls.push(check);
+    const passed = check.total >= dc;
+    lines.push(`<strong>${t("Overcharge.Line.Reckless")}</strong>`);
+    lines.push(tf("Overcharge.Line.Check", { total: check.total, dc }));
+    if (passed) lines.push(t("Overcharge.Line.RecklessSafe"));
+    else {
+      const dmg = await new Roll(`${plan.hd}d6`).evaluate();
+      rolls.push(dmg);
+      const left = await forceDamage(actor, dmg.total);
+      lines.push(tf("Overcharge.Line.RecklessFail", { damage: dmg.total, dice: plan.hd, hp: left }));
+    }
+    await postCard(actor, { title: tf("Overcharge.RecklessTitle", { spell: esc(item.name) }), icon: "fa-solid fa-burst", lines, rolls });
+    await rollBacklash(actor, { level: target });
+  } else if (plan.check) {
     const mod = Number(actor.system.attributes?.spell?.mod) || 0;
     const prof = Number(actor.system.attributes?.prof) || 0;
     const roll = await new Roll("1d20 + @mod + @prof", { mod, prof }).evaluate();
@@ -204,11 +240,13 @@ export async function runOvercharge(activity, config, messageConfig) {
       lines.push(tf("Overcharge.Line.Fail", { damage: plan.hd, hp: left }));
     }
   }
-  if (success && plan.check) lines.push(t("Overcharge.Line.Success"));
-  await postCard(actor, {
-    title: tf(success ? "Overcharge.CardTitle" : "Overcharge.CardFailed", { spell: esc(item.name) }),
-    icon: success ? "fa-solid fa-bolt" : "fa-solid fa-burst", lines, rolls
-  });
+  if (!reckless) {
+    if (success && plan.check) lines.push(t("Overcharge.Line.Success"));
+    await postCard(actor, {
+      title: tf(success ? "Overcharge.CardTitle" : "Overcharge.CardFailed", { spell: esc(item.name) }),
+      icon: success ? "fa-solid fa-bolt" : "fa-solid fa-burst", lines, rolls
+    });
+  }
   if (!success) return;
 
   // Cast it for real: at the chosen level, with no slot spent (the cost is already paid).

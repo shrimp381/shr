@@ -5,6 +5,8 @@
   --shr-accent-soft: rgba(143, 45, 45, 0.12);
   --shr-perm: #5b2a6b;
   --shr-perm-soft: rgba(91, 42, 107, 0.14);
+  --shr-back: #0b6f7c;
+  --shr-back-soft: rgba(11, 111, 124, 0.14);
   --shr-line: rgba(0, 0, 0, 0.15);
   --shr-muted: rgba(0, 0, 0, 0.6);
   --shr-ok: #3d6b3a;
@@ -22,6 +24,8 @@
   --shr-accent-soft: rgba(224, 122, 122, 0.14);
   --shr-perm: #c39be6;
   --shr-perm-soft: rgba(195, 155, 230, 0.16);
+  --shr-back: #5fd0dd;
+  --shr-back-soft: rgba(95, 208, 221, 0.16);
   --shr-line: rgba(255, 255, 255, 0.15);
   --shr-muted: rgba(255, 255, 255, 0.6);
   --shr-ok: #6fbf6a;
@@ -163,3 +167,11 @@ fieldset.shr-automation .hint { margin: 0 0 0.5rem; }
 .shr-overcharge .shr-oc-cost { margin: 4px 0; font-weight: 600; }
 .shr-overcharge .shr-oc-cost.bad { color: var(--color-level-error, #b00); }
 .shr-overcharge [hidden] { display: none !important; }
+
+.shr-overcharge .shr-oc-warn { margin: 4px 0; padding: 4px 6px; border: 1px solid var(--color-level-error, #b00); border-radius: 4px; color: var(--color-level-error, #b00); font-weight: 600; }
+
+/* Arcane Backlash results */
+.shr-tracker .shr-backlash { margin-top: 6px; }
+.shr-tracker .shr-backlash-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.shr-tracker .shr-wound.backlash { border-left-color: var(--shr-back); background: var(--shr-back-soft); }
+.shr-tracker .shr-chip.back { border-color: var(--shr-back); color: var(--shr-back); }

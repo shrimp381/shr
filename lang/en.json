@@ -303,18 +303,23 @@
       "exhaustionPenalty": {
         "Name": "Exhaustion penalty per level",
         "Hint": "Penalty to d20 Tests for each level of exhaustion. The system's default is 2; the homebrew rules use 1."
+      },
+      "recklessOvercharge": {
+        "Name": "Reckless Overcharge",
+        "Hint": "Lets a caster Overcharge a spell one level above the highest level they can normally cast. A spell check (DC 8 + level) decides whether it costs 1d6 Force damage per die spent, and every reckless cast rolls on the Arcane Backlash table."
       }
     },
     "Tables": {
       "MenuTitle": "Wound tables",
-      "MenuBody": "Open a table to edit it: change a result's text, move its range, delete results to shorten the table, or add your own. Reset puts all three back to the campaign defaults.",
+      "MenuBody": "Open a table to edit it: change a result's text, move its range, delete results to shorten the table, or add your own. The wound tables and the Arcane Backlash table can be edited; a result renamed to something the module doesn't know is shown in chat but has no automation. Reset puts all of them back to the campaign defaults.",
       "Main": "Wounds & Injuries",
       "Npc": "Wounds & Injuries (NPC)",
       "Permanent": "Permanent Wound",
       "Reset": "Reset all to defaults",
       "ResetTitle": "Reset wound tables",
-      "ResetBody": "Replace the results of all three wound tables with the defaults? Your changes to them will be lost.",
-      "ResetDone": "Wound tables reset to the defaults."
+      "ResetBody": "Replace the results of all the wound tables and the Arcane Backlash table with the defaults? Your changes to them will be lost.",
+      "ResetDone": "Wound tables reset to the defaults.",
+      "Backlash": "Arcane Backlash"
     },
     "Automation": {
       "Title": "Wound automation (SHR)",
@@ -344,8 +349,8 @@
     "Overcharge": {
       "Title": "Overcharge (SHR)",
       "Use": "Overcharge this spell (spend Hit Dice instead of a slot)",
-      "HintBase": "Spend Hit Dice equal to the spell level, then make a spell check (DC 10 + level). On a failure the spell fails and you take that much Force damage. You can only overcharge up to the highest spell level your levels would normally let you cast.",
-      "HintCap": "1st-3rd level: spend Hit Dice equal to the level. 4th level and up: expend a lower slot and a Hit Die for each level below the spell. You can only overcharge up to the highest spell level your levels would normally let you cast.",
+      "HintBase": "Spend Hit Dice equal to the spell level, then make a spell check (DC 10 + level). On a failure the spell fails and you take that much Force damage. You can only overcharge up to the highest spell level your levels would normally let you cast; one level above that is a Reckless Overcharge.",
+      "HintCap": "1st-3rd level: spend Hit Dice equal to the level. 4th level and up: expend a lower slot and a Hit Die for each level below the spell. You can only overcharge up to the highest spell level your levels would normally let you cast; one level above that is a Reckless Overcharge.",
       "Level": "Cast at level",
       "Slot": "Slot to expend",
       "SlotOption": "Level {level} slot ({n} left){pact}",
@@ -360,7 +365,7 @@
         "level": "Choose a level at or above the spell's level.",
         "slot": "Choose a slot to expend.",
         "noNeed": "That slot is high enough to cast the spell normally.",
-        "tooHigh": "You can't cast spells above level {max}."
+        "tooHigh": "You can't overcharge a spell to that level."
       },
       "CardTitle": "{spell} overcharged",
       "CardFailed": "{spell} overcharge failed",
@@ -369,8 +374,47 @@
         "Slot": "Expended a level {level} slot.",
         "Check": "Spell check: {total} against DC {dc}.",
         "Success": "The spell is cast.",
-        "Fail": "The spell fails. {damage} Force damage (HP now {hp})."
-      }
+        "Fail": "The spell fails. {damage} Force damage (HP now {hp}).",
+        "Reckless": "Reckless Overcharge: the spell is cast whatever the check.",
+        "RecklessSafe": "The check succeeds. No damage.",
+        "RecklessFail": "The check fails. {damage} Force damage ({dice}d6), which nothing can reduce (HP now {hp})."
+      },
+      "RecklessWarn": "Reckless Overcharge! This is above the highest level you can cast. Spell check DC {dc}: fail and you take 1d6 Force damage per die spent. Either way the spell is cast and you roll on the Arcane Backlash table.",
+      "CostReckless": "Reckless: spell check DC {dc}, {dice}d6 Force damage on a failure.",
+      "RecklessTitle": "{spell}: reckless overcharge"
+    },
+    "Backlash": {
+      "Title": "Arcane Backlash",
+      "CardTitle": "{name}: Arcane Backlash",
+      "Effects": "Backlash effects",
+      "Rolled": "Arcane Backlash: {formula} = <strong>{total}</strong>",
+      "CannotCast": "You can't cast spells of 1st level or higher right now (Arcane Backlash).",
+      "Effect": {
+        "WeaveBurn": "Weave Burn",
+        "Strained": "Strained Conduits",
+        "Overload": "Sensory Overload",
+        "Feedback": "Arcane Feedback",
+        "Echo": "Spell Echo",
+        "NoSpells": "Cannot cast spells of 1st level or higher. Cantrips function normally.",
+        "FeedbackText": "Hit point maximum reduced by {n} until a Long Rest.",
+        "EchoText": "Disadvantage on saving throws against spells and magical effects."
+      },
+      "Line": {
+        "Rupture": "Dropped to 0 hit points.",
+        "WeaveBurn": "Lost all remaining Hit Dice and Veteran Dice ({n}). Can't cast spells of 1st level or higher for 1 minute.",
+        "Exhaustion": "Exhaustion level is now {level}.",
+        "Strained": "Can't cast spells of 1st level or higher until the end of the next turn.",
+        "Overload": "Dazed and deafened until the end of the next turn.",
+        "Siphon": "Rolled {roll} on 1d4: lost {lost} Hit or Veteran Dice.",
+        "SiphonDamage": "No dice left to lose: {damage} Force damage (HP now {hp}).",
+        "Feedback": "Hit point maximum reduced by {n} until a Long Rest.",
+        "Toll": "Rolled on the Wounds and Injuries table as for massive damage.",
+        "Echo": "Disadvantage on saving throws against spells and magical effects for 10 minutes.",
+        "Overflow": "Force damage equal to the expended Hit and Veteran Dice: {n}.",
+        "OverflowHit": "{name} takes {n} Force damage."
+      },
+      "Chip": "Backlash",
+      "Remove": "Remove backlash"
     }
   }
 }

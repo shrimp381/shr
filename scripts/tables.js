@@ -281,6 +281,7 @@ export function makeTablesMenu() {
           button("main", T("Tables.Main"), "fa-solid fa-heart-crack"),
           button("npc", T("Tables.Npc"), "fa-solid fa-skull"),
           button("permanent", T("Tables.Permanent"), "fa-solid fa-bone"),
+          button("backlash", T("Tables.Backlash"), "fa-solid fa-burst"),
           button("reset", T("Tables.Reset"), "fa-solid fa-rotate-left")
         ],
         rejectClose: false
@@ -291,7 +292,13 @@ export function makeTablesMenu() {
           window: { title: T("Tables.ResetTitle"), icon: "fa-solid fa-rotate-left" },
           content: `<div class="shr-dialog"><p>${T("Tables.ResetBody")}</p></div>`, rejectClose: false
         });
-        if (ok) { await resetTables(); ui.notifications.info(T("Tables.ResetDone")); }
+        if (ok) { await resetTables(); await game.modules.get(MODULE_ID)?.api?.backlash?.reset?.(); ui.notifications.info(T("Tables.ResetDone")); }
+        return this;
+      }
+      if (choice === "backlash") {
+        const api = game.modules.get(MODULE_ID)?.api?.backlash;
+        if (!api?.table()) await api?.reset();
+        api?.table()?.sheet?.render(true);
         return this;
       }
       let doc = findTable(choice);

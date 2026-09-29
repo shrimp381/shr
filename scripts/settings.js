@@ -57,6 +57,7 @@ export function registerSettings() {
 
   // Overcharging and the Level Cap ruleset. Each master switch turns its feature off completely.
   reg("overcharge", { type: Boolean, default: true });
+  reg("recklessOvercharge", { type: Boolean, default: true });
   reg("veteranLevels", { type: Boolean, default: true, onChange: () => refreshVeteran() });
   reg("atLevelCap", { type: Boolean, default: false, onChange: () => refreshVeteran() });
   reg("levelCap", { type: Number, default: 6, range: { min: 1, max: 20, step: 1 }, onChange: () => refreshVeteran() });

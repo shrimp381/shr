@@ -104,6 +104,14 @@ Both features have a master switch in the SHR settings (**Overcharging spells** 
 ### Exhaustion
 Each level of exhaustion gives -1 to d20 Tests (dnd5e 5.x's own rule is -2 per level). Change it with the **Exhaustion penalty per level** setting; it edits the system's exhaustion setting on load, and the system does the rest.
 
+### Reckless Overcharge and Arcane Backlash
+Overcharging is limited to the highest spell level the character's levels would normally let them cast. One level above that is a **Reckless Overcharge** (setting: *Reckless Overcharge*). Choose the level in the Overcharge fieldset and a warning appears.
+- The cost is the same as any Overcharge (Hit Dice, plus a lower slot under the level cap rules: a 5th level spell is a 3rd level slot + 2 dice).
+- A spell check of `1d20 + spellcasting modifier` against DC 8 + the spell's level decides the damage: on a failure the caster takes 1d6 Force damage per die spent (nothing reduces it). The spell is cast either way.
+- Every Reckless Overcharge also rolls on the **Arcane Backlash** table (1d10). The result appears in chat and in the Wound Tracker (Perils tab, or the pinned section on Tidy 5e sheets) in its own colour until a Long Rest or until you remove it.
+- The table is an ordinary RollTable ("Arcane Backlash"). Open it from **Configure Settings → SHR → Wound tables** to change text, ranges or the formula, add or delete results, or reset it. The effects are picked by name: Arcane Rupture, Weave Burn, Arcane Exhaustion, Strained Conduits, Sensory Overload, Magical Siphon, Arcane Feedback, Physical Toll, Spell Echo and Volatile Overflow are automated (Active Effects for the timed ones; casting is blocked while Weave Burn or Strained Conduits lasts; Arcane Feedback ends on a Long Rest). A result with any other name is shown but has no automation.
+- Spell Echo is a reminder effect (disadvantage on saves against spells isn't automated). Volatile Overflow damages tokens within 10 feet; a player's client asks the GM's client to apply damage to creatures they don't own, so a GM must be logged in.
+
 ### Wound Tracker
 On the default sheet, a panel sits in the sidebar under HP. It shows:
 - the wound penalty (−N)

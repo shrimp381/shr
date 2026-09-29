@@ -6,6 +6,7 @@
  * action dispatch never picks them up.
  */
 import { veteranContext } from "./veteran.js";
+import { getBacklashes, removeBacklash } from "./backlash.js";
 import { MODULE_ID } from "./constants.js";
 import { setting, t, tf } from "./settings.js";
 import {
@@ -82,6 +83,7 @@ export function trackerContext(actor, { editable = actor.isOwner, tidy = false, 
   const pending = actor.getFlag(MODULE_ID, "pendingPermanent");
   return {
     veteran: veteranContext(actor),
+    backlashes: getBacklashes(actor),
     actorUuid: actor.uuid,
     editable,
     tidy,
@@ -234,6 +236,7 @@ async function handleAction(action, target, actor) {
   const itemId = target.closest("[data-item-id]")?.dataset.itemId;
   switch (action) {
     case "pin": return togglePinned(actor);
+    case "removeBacklash": return removeBacklash(actor, target.closest("[data-backlash-id]")?.dataset.backlashId);
     case "expand": return target.closest(".shr-wound")?.classList.toggle("expanded");
     case "add": return addWoundDialog(actor);
     case "roll": return rollWoundDialog(actor);

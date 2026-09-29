@@ -41,6 +41,7 @@ import {
   hitDiceSummary, spendHitDice
 } from "./veteran.js";
 import { registerOvercharge, runOvercharge, capRules, availableSlots } from "./overcharge.js";
+import { registerBacklash, ensureBacklash, resetBacklash, rollBacklash, findBacklash, onLongRest as backlashLongRest, FORCE_QUERY, onForceQuery } from "./backlash.js";
 import { bindChatCard, postCard } from "./chat.js";
 import { loadTables, ensureTables, resetTables, registerTableHooks, injectAutomation, findTable } from "./tables.js";
 
@@ -65,10 +66,12 @@ Hooks.once("init", () => {
   if (failed.length) console.warn(`${MODULE_ID} | Veteran Levels could not override: ${failed.join(", ")}`);
   registerVeteranHooks();
   registerOvercharge();
+  registerBacklash();
 
   // v13 user queries: Shield Block prompts on the player's client, midi-qol hit context to the GM.
   CONFIG.queries ??= {};
   CONFIG.queries[BLOCK_QUERY] = async data => blockDialog(data, data?.timeout ?? 30);
+  CONFIG.queries[FORCE_QUERY] = onForceQuery;
   CONFIG.queries[CONTEXT_QUERY] = async ({ uuid, ctx } = {}) => {
     if (uuid && ctx) storeContext(uuid, ctx);
     return true;
@@ -92,6 +95,7 @@ Hooks.once("init", () => {
       hitDice: hitDiceSummary, spendHitDice
     },
     overcharge: { run: runOvercharge, capRules, availableSlots },
+    backlash: { roll: rollBacklash, reset: resetBacklash, table: findBacklash },
     // Roll tables: reload after editing, or reset to the defaults (GM)
     tables: { load: loadTables, reset: resetTables, get: findTable }
   };
@@ -112,6 +116,7 @@ Hooks.once("ready", async () => {
   registerTableHooks();
   loadTables();
   await ensureTables();
+  await ensureBacklash();
   if (game.user.isActiveGM && veteranActive()) refreshVeteran();
 });
 
@@ -135,6 +140,7 @@ Hooks.on("updateActor", onUpdateActor);
 Hooks.on("dnd5e.restCompleted", async (actor, result, config) => {
   if (!actor?.isOwner) return;
   const longRest = !!(result?.longRest ?? (config?.type === "long"));
+  if (longRest) await backlashLongRest(actor);
   if (getWounds(actor).length) await onRest(actor, longRest);
   if (longRest && setting("magicRecovery") === "longRest") {
     const days = setting("longRestDays");
