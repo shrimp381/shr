@@ -131,6 +131,13 @@ export function onPreCreateClass(item) {
 /*  Overriding progression                      */
 /* -------------------------------------------- */
 
+/** Is this level of the class a veteran level? (levels of the character's other classes count toward the cap) */
+export function isVeteranLevel(cls, level) {
+  if (!veteranActive() || !cls) return false;
+  const others = classItems(cls.actor).filter(c => c.id !== cls.id).reduce((n, c) => n + (Number(c.system?.levels) || 0), 0);
+  return others + Number(level) > levelCap();
+}
+
 const veteranOfActor = actor => (actor ? veteranTotal(actor) : 0);
 
 /**
@@ -178,10 +185,26 @@ export function installPatches() {
     const proto = sys.documents.advancement.HitPointsAdvancement.prototype;
     const total = proto.getAdjustedTotal;
     proto.getAdjustedTotal = function (mod) {
-      const v = veteranOf(this.item);
-      if (!v) return total.call(this, mod);
-      const keep = Math.max(0, (Number(this.item.system.levels) || 0) - v);
+      if (!veteranActive() || !this.item) return total.call(this, mod);
+      const others = classItems(this.item.actor).filter(c => c.id !== this.item.id).reduce((n, c) => n + (Number(c.system?.levels) || 0), 0);
+      const keep = Math.max(0, levelCap() - others);
+      if (keep >= (Number(this.item.system.levels) || 0)) return total.call(this, mod);
       return hpWithoutVeteran(Object.keys(this.value ?? {}).map(Number), l => this.valueForLevel(l), mod, keep);
+    };
+
+    // Levelling up also adds the rolled/average value to *current* hit points when the advancement is applied.
+    // Veteran levels must not give that either.
+    const apply = proto.apply;
+    proto.apply = function (level, data, ...rest) {
+      if (!isVeteranLevel(this.item, level)) return apply.call(this, level, data, ...rest);
+      return this.updateSource({ value: data });
+    };
+    const reverse = proto.reverse;
+    proto.reverse = function (level, ...rest) {
+      if (!isVeteranLevel(this.item, level)) return reverse.call(this, level, ...rest);
+      const source = this.value?.[level];
+      this.updateSource({ [`value.-=${level}`]: null });
+      return source;
     };
   } catch (err) { failed.push("hit points"); console.warn(`${MODULE_ID} | could not patch HitPointsAdvancement`, err); }
   return failed;
