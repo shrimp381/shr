@@ -150,3 +150,5 @@
 fieldset.shr-automation { margin: 0.5rem 0; }
 fieldset.shr-automation legend { font-weight: bold; }
 fieldset.shr-automation .hint { margin: 0 0 0.5rem; }
+/* The result editor doesn't scroll by default; with the automation section it is taller than the window. */
+.application.table-result-config .window-content:has(> .shr-automation) { overflow-y: auto; }
