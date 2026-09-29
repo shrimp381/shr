@@ -83,6 +83,24 @@ On a **long rest**, the module rolls a DC 10 Medicine check for each temporary w
 - **Repair** button on damaged armour. The options are a craftsman (2/5/10 gp for light/medium/heavy, with an option to deduct the gold), a party member with the right tools (free), or *Mending* (only if the piece has lost less than 3 AC). Shields can only be **replaced**.
 - **Magic armour recovers AC:** 1 every 2 days for a basic enchantment, 1 per day for +1, and 2 per day for +2. By default a long rest counts as 1.5 days, because the setting's long rest is 36 hours. You can instead tie recovery to world time or do it manually.
 
+### Overcharging spells
+Cast a spell without a slot by spending Hit Dice. A checkbox appears in the usage dialog of leveled spells cast by player characters: tick it, choose the level to cast at, and (under the level cap rules, 4th level and up) the slot to expend.
+
+- **Base rules (level 6 or lower):** spend Hit Dice equal to the spell's level, then make a spell check: `1d20 + spellcasting modifier + proficiency` against DC 10 + the spell's level. On a success the spell is cast; on a failure the spell fails and the caster takes Force damage equal to the Hit Dice spent. The damage comes straight off hit points (temporary hit points and resistances don't apply).
+- **At level cap:** 1st-3rd level spells cost Hit Dice equal to their level, with no check or damage. 4th level and up expend a lower spell slot plus a Hit Die for each level it is below the spell (Fireball at 4th: a 3rd level slot + 1 Hit Die, or a 2nd level slot + 2). Under these rules a Warlock's pact slot counts as a 3rd level slot.
+- Spent dice come off Veteran Dice first, then the largest Hit Die.
+- Which rules apply is decided by the GM's **At level cap** setting (or by the character being past the level cap).
+
+### Level Cap and Veteran Levels
+With **At level cap** switched on, every level a character gains beyond the level cap (default 6) is a Veteran Level. The character still gains class features and advancements, but:
+- proficiency bonus stays where it was at the cap,
+- max HP doesn't grow (the Hit Points advancement of veteran levels is ignored),
+- spell slots and pact slots stop progressing, and cantrips stop scaling,
+- the Hit Dice of veteran levels are **Veteran Dice**, shown separately in the Wound Tracker (Hit Dice x/y, Veteran Dice a/b).
+Veteran levels are recorded when a class levels up past the cap, or when the GM switches the rule on for characters already past it. Not automated: Fighter Extra Attack (2)/(3) and the level 8/10 ASIs/feats; handle them by not granting those advancements. Veteran Dice can be spent on short rest healing and Overcharging; dnd5e's short rest dialog still lists them with the normal Hit Dice.
+
+Both features have a master switch in the SHR settings (**Overcharging spells** and **Veteran Levels**). Switching one off removes it completely.
+
 ### Wound Tracker
 On the default sheet, a panel sits in the sidebar under HP. It shows:
 - the wound penalty (−N)

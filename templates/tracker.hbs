@@ -18,6 +18,14 @@
     {{/if}}
   </header>
 
+  {{#if veteran}}
+  <div class="shr-veteran" data-tooltip="{{localize "SHR.Veteran.Hint"}}">
+    <span><i class="fa-solid fa-medal"></i> {{localize "SHR.Veteran.Levels"}} <b>{{veteran.levels}}</b></span>
+    <span>{{localize "SHR.Veteran.HitDice"}} <b>{{veteran.hd.value}}/{{veteran.hd.max}}</b></span>
+    <span>{{localize "SHR.Veteran.VeteranDice"}} <b>{{veteran.vet.value}}/{{veteran.vet.max}}</b></span>
+  </div>
+  {{/if}}
+
   {{#if pending}}
   <div class="shr-pending">
     <span><i class="fa-solid fa-triangle-exclamation"></i> {{localize "SHR.Tracker.Pending"}}</span>

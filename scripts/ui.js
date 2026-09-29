@@ -5,6 +5,7 @@
  * Controls use data-shr-action (not data-action) so the sheet's own ApplicationV2
  * action dispatch never picks them up.
  */
+import { veteranContext } from "./veteran.js";
 import { MODULE_ID } from "./constants.js";
 import { setting, t, tf } from "./settings.js";
 import {
@@ -80,6 +81,7 @@ export function trackerContext(actor, { editable = actor.isOwner, tidy = false, 
   const exempt = exemption(actor);
   const pending = actor.getFlag(MODULE_ID, "pendingPermanent");
   return {
+    veteran: veteranContext(actor),
     actorUuid: actor.uuid,
     editable,
     tidy,

@@ -283,6 +283,22 @@
         "Name": "Wound tables",
         "Label": "Open or reset wound tables",
         "Hint": "The three wound tables are ordinary roll tables in the world (in the \"Shrimp's Homebrew Rules\" folder). Edit them to change wounds, ranges or severity, or reset them to the defaults here."
+      },
+      "overcharge": {
+        "Name": "Overcharging spells",
+        "Hint": "Master switch. Lets characters cast spells by spending Hit Dice (a checkbox in the spell's usage dialog). Turn off to remove Overcharging completely."
+      },
+      "veteranLevels": {
+        "Name": "Veteran Levels",
+        "Hint": "Master switch. Levels beyond the level cap stop adding proficiency, hit points, spell slots and cantrip scaling, and their Hit Dice become Veteran Dice. Turn off to remove Veteran Levels completely."
+      },
+      "atLevelCap": {
+        "Name": "At level cap",
+        "Hint": "GM toggle. Switch on when the party reaches the level cap: Veteran Levels apply (if enabled) and Overcharging uses the \"at level cap\" rules."
+      },
+      "levelCap": {
+        "Name": "Level cap",
+        "Hint": "The level after which further levels are Veteran Levels."
       }
     },
     "Tables": {
@@ -314,6 +330,42 @@
       "CloseCall": "Close call",
       "CloseCallHint": "At 0 HP, fall to 1 HP instead (and prone).",
       "Fatal": "Fatal (dead)"
+    },
+    "Veteran": {
+      "Levels": "Veteran Levels",
+      "HitDice": "Hit Dice",
+      "VeteranDice": "Veteran Dice",
+      "Hint": "Veteran Dice are spent first, only on short rest healing and Overcharging."
+    },
+    "Overcharge": {
+      "Title": "Overcharge (SHR)",
+      "Use": "Overcharge this spell (spend Hit Dice instead of a slot)",
+      "HintBase": "Spend Hit Dice equal to the spell level, then make a spell check (DC 10 + level). On a failure the spell fails and you take that much Force damage.",
+      "HintCap": "1st-3rd level: spend Hit Dice equal to the level. 4th level and up: expend a lower slot and a Hit Die for each level below the spell.",
+      "Level": "Cast at level",
+      "Slot": "Slot to expend",
+      "SlotOption": "Level {level} slot ({n} left){pact}",
+      "Pact": "pact",
+      "CostHD": "Cost: {hd} Hit Dice.",
+      "CostSlot": "Cost: a level {slot} slot and {hd} Hit Dice.",
+      "CostBase": "Cost: {hd} Hit Dice, spell check DC {dc}.",
+      "Dice": "Hit Dice available: {n}",
+      "NotEnough": "Not enough Hit Dice.",
+      "NotEnoughWarn": "Overcharging needs {hd} Hit Dice; you have {have}.",
+      "Invalid": {
+        "level": "Choose a level at or above the spell's level.",
+        "slot": "Choose a slot to expend.",
+        "noNeed": "That slot is high enough to cast the spell normally."
+      },
+      "CardTitle": "{spell} overcharged",
+      "CardFailed": "{spell} overcharge failed",
+      "Line": {
+        "Cost": "{spell} at level {level}: spent {hd} Hit Dice ({dice}).",
+        "Slot": "Expended a level {level} slot.",
+        "Check": "Spell check: {total} against DC {dc}.",
+        "Success": "The spell is cast.",
+        "Fail": "The spell fails. {damage} Force damage (HP now {hp})."
+      }
     }
   }
 }

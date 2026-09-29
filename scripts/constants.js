@@ -231,3 +231,110 @@ export function recoveryStep({ lost, rate, progress = 0, days }) {
   const gain = Math.min(lost, Math.floor(total + 1e-9));
   return { gain, progress: gain >= lost ? 0 : total - gain };
 }
+
+/* -------------------------------------------- */
+/*  Level cap and Overcharge (pure logic)       */
+/* -------------------------------------------- */
+
+/** Default level cap: characters stop progressing in the traditional way at this level. */
+export const DEFAULT_LEVEL_CAP = 6;
+
+/** Highest spell level. */
+export const MAX_SPELL_LEVEL = 9;
+
+/**
+ * Which Overcharge rules a character casts under: the "at level cap" rules (GM toggle, or the
+ * character is already past the cap) or the base rules (Hit Dice, spell check, Force damage).
+ */
+export function usesCapRules({ atLevelCap = false, level = 0, cap = DEFAULT_LEVEL_CAP } = {}) {
+  return !!atLevelCap || level > cap;
+}
+
+/**
+ * What it takes to Overcharge a spell.
+ *
+ * Base rules (level 6 or lower): spend Hit Dice equal to the spell's level, then make a spell check
+ * against DC 10 + level. A failure means the spell fails and the caster takes Force damage equal to the
+ * Hit Dice spent.
+ *
+ * At the level cap and onward:
+ *  - 1st-3rd level: spend Hit Dice equal to the spell's level. No check, no damage.
+ *  - 4th level and up: expend a spell slot and spend a Hit Die for each level it is below the spell.
+ *    (Fireball at 4th: a 3rd level slot + 1 Hit Die, or a 2nd level slot + 2.) No check, no damage.
+ *
+ * @param {object} o
+ * @param {number} o.target       level the spell is cast at
+ * @param {boolean} o.capRules
+ * @param {number|null} [o.slotLevel]  level of the slot expended (cap rules, 4th level and up)
+ * @returns {{valid:boolean, reason?:string, hd:number, slot:number|null, check:boolean, dc:number|null, damage:boolean}}
+ */
+export function overchargePlan({ target, capRules, slotLevel = null }) {
+  target = Math.floor(Number(target) || 0);
+  const base = { valid: true, hd: target, slot: null, check: false, dc: null, damage: false };
+  if (target < 1 || target > MAX_SPELL_LEVEL) return { ...base, valid: false, reason: "level" };
+  if (!capRules) return { ...base, check: true, dc: 10 + target, damage: true };
+  if (target <= 3) return base;
+  if (!slotLevel) return { ...base, valid: false, reason: "slot" };
+  if (slotLevel >= target) return { ...base, valid: false, reason: "noNeed" };
+  return { ...base, hd: target - slotLevel, slot: slotLevel };
+}
+
+/**
+ * Veteran levels added by a level-up: the levels gained beyond the cap.
+ * @param {number} oldTotal  total character level before
+ * @param {number} delta     levels gained
+ */
+export function veteranGain(oldTotal, delta, cap = DEFAULT_LEVEL_CAP) {
+  if (delta <= 0) return 0;
+  return delta - Math.min(delta, Math.max(0, cap - oldTotal));
+}
+
+/**
+ * Decide how many veteran levels each class holds so they add up to `total - cap`.
+ * Missing levels go to the class with the most levels; surplus comes off the class with the most veteran levels.
+ * @param {Array<{id:string, levels:number, veteran:number}>} classes
+ * @returns {Record<string, number>}
+ */
+export function reconcileVeteran(classes, cap = DEFAULT_LEVEL_CAP) {
+  const out = Object.fromEntries(classes.map(c => [c.id, Math.min(Math.max(0, Math.floor(c.veteran) || 0), c.levels)]));
+  const want = Math.max(0, classes.reduce((s, c) => s + c.levels, 0) - cap);
+  let have = Object.values(out).reduce((s, n) => s + n, 0);
+  while (have > want) {
+    const id = Object.keys(out).filter(k => out[k] > 0).sort((a, b) => out[b] - out[a])[0];
+    out[id]--; have--;
+  }
+  while (have < want) {
+    const id = classes.filter(c => out[c.id] < c.levels).sort((a, b) => (b.levels - out[b.id]) - (a.levels - out[a.id]))[0]?.id;
+    if (!id) break;
+    out[id]++; have++;
+  }
+  return out;
+}
+
+/**
+ * Hit points a class gives, leaving out its veteran levels (Max HP stays fixed at the cap).
+ * Mirrors the system's HitPoints advancement total: each level gives its rolled or average value plus the
+ * Constitution modifier, at least 1.
+ * @param {number[]} levels            levels that have a hit point value
+ * @param {(level:number)=>number} valueForLevel
+ * @param {number} mod                 Constitution modifier per level
+ * @param {number} keep                only levels up to this one count
+ */
+export function hpWithoutVeteran(levels, valueForLevel, mod, keep) {
+  return levels.filter(l => l <= keep).reduce((total, l) => total + Math.max(valueForLevel(l) + mod, 1), 0);
+}
+
+/**
+ * Split one class's Hit Dice into normal and Veteran Dice. Dice spent come off the Veteran Dice first.
+ * @param {{levels:number, spent:number, veteran:number}} c
+ */
+export function splitHitDice({ levels, spent, veteran }) {
+  const vet = Math.min(Math.max(0, veteran), levels);
+  const s = Math.min(Math.max(0, spent), levels);
+  const vetAvail = Math.max(0, vet - s);
+  const normalAvail = Math.max(0, (levels - vet) - Math.max(0, s - vet));
+  return { vetMax: vet, normalMax: levels - vet, vetAvail, normalAvail };
+}
+
+/** Proficiency bonus for a level (same table as the system). */
+export const proficiencyForLevel = level => Math.floor((level + 7) / 4);

@@ -36,6 +36,11 @@ import {
 } from "./wounds.js";
 import { manualShieldBlock, blockDialog, QUERY as BLOCK_QUERY } from "./shield-block.js";
 import { TEMPLATE, injectTracker, registerTidy, potionPrompt } from "./ui.js";
+import {
+  installPatches, registerVeteranHooks, veteranActive, veteranContext, reconcile as reconcileVeteran, refresh as refreshVeteran,
+  hitDiceSummary, spendHitDice
+} from "./veteran.js";
+import { registerOvercharge, runOvercharge, capRules, availableSlots } from "./overcharge.js";
 import { bindChatCard, postCard } from "./chat.js";
 import { loadTables, ensureTables, resetTables, registerTableHooks, injectAutomation, findTable } from "./tables.js";
 
@@ -54,6 +59,12 @@ Hooks.once("init", () => {
   };
   // Until the world's roll tables are available, the rules use the default tables.
   loadTables();
+
+  // Level Cap ruleset: override proficiency, cantrips and hit points where the system derives them.
+  const failed = installPatches();
+  if (failed.length) console.warn(`${MODULE_ID} | Veteran Levels could not override: ${failed.join(", ")}`);
+  registerVeteranHooks();
+  registerOvercharge();
 
   // v13 user queries: Shield Block prompts on the player's client, midi-qol hit context to the GM.
   CONFIG.queries ??= {};
@@ -75,6 +86,12 @@ Hooks.once("init", () => {
     shieldBlock: actor => manualShieldBlock(actor ?? canvas.tokens?.controlled[0]?.actor ?? game.user.character),
     // Run the rules for a hit by hand: processHit(actor, {dealt, droppedToZero}, {crit, isAttack, types})
     processHit,
+    // Level Cap (Veteran Levels) and Overcharge
+    veteran: {
+      active: veteranActive, context: veteranContext, reconcile: reconcileVeteran, refresh: refreshVeteran,
+      hitDice: hitDiceSummary, spendHitDice
+    },
+    overcharge: { run: runOvercharge, capRules, availableSlots },
     // Roll tables: reload after editing, or reset to the defaults (GM)
     tables: { load: loadTables, reset: resetTables, get: findTable }
   };
@@ -94,6 +111,7 @@ Hooks.once("ready", async () => {
   registerTableHooks();
   loadTables();
   await ensureTables();
+  if (game.user.isActiveGM && veteranActive()) refreshVeteran();
 });
 
 /** Conditions and effects pickers on a wound table result. */

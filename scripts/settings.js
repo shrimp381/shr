@@ -1,6 +1,8 @@
 import { MODULE_ID } from "./constants.js";
 import { makeTablesMenu } from "./tables.js";
 
+const refreshVeteran = () => game.modules.get(MODULE_ID)?.api?.veteran?.refresh?.();
+
 export const t = key => game.i18n.localize(`SHR.${key}`);
 export const tf = (key, data) => game.i18n.format(`SHR.${key}`, data);
 export const setting = key => game.settings.get(MODULE_ID, key);
@@ -42,6 +44,12 @@ export function registerSettings() {
   reg("longRestTreatment", { type: Boolean, default: true });
   reg("potionPrompt", { type: Boolean, default: true });
   reg("whisperGM", { type: Boolean, default: false });
+
+  // Overcharging and the Level Cap ruleset. Each master switch turns its feature off completely.
+  reg("overcharge", { type: Boolean, default: true });
+  reg("veteranLevels", { type: Boolean, default: true, onChange: () => refreshVeteran() });
+  reg("atLevelCap", { type: Boolean, default: false, onChange: () => refreshVeteran() });
+  reg("levelCap", { type: Number, default: 6, range: { min: 1, max: 20, step: 1 }, onChange: () => refreshVeteran() });
 
   // The wound roll tables are ordinary RollTables; this menu opens them or resets them to the defaults.
   game.settings.registerMenu(MODULE_ID, "tables", {
