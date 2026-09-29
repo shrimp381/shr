@@ -138,3 +138,10 @@
 }
 .shr-tracker.shr-pinned .shr-wound-text { -webkit-line-clamp: 1; line-clamp: 1; }
 .shr-tracker.shr-pinned .shr-wound.expanded .shr-wound-text { -webkit-line-clamp: unset; line-clamp: unset; }
+
+/* Pinned to the Attributes tab of Tidy 5e classic sheets: the right-hand column becomes a stack,
+   the favourites list shrinks and scrolls, and the panel sits at the bottom. */
+.attributes-tab-contents > .main-panel:has(> .shr-tracker.shr-pinned) { display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.attributes-tab-contents > .main-panel:has(> .shr-tracker.shr-pinned) > :not(.shr-tracker) { flex: 0 0 auto; }
+.attributes-tab-contents > .main-panel:has(> .shr-tracker.shr-pinned) > .flex-column { flex: 1 1 0; min-height: 4rem; overflow-y: auto; }
+.main-panel > .shr-tracker.shr-pinned { flex: 0 0 auto; max-height: 45%; overflow-y: auto; margin: auto 0 0; }

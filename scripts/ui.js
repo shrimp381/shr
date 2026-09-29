@@ -134,6 +134,9 @@ export async function injectTracker(app, html) {
 export const PERILS_TAB = `${MODULE_ID}-perils`;
 export const isPinned = () => !!game.settings.get(MODULE_ID, "perilsPinned");
 
+/** Classic layout: the right-hand column of the Attributes tab (favourites / pinned items). */
+const CLASSIC_PANEL = '[data-tab-contents-for="attributes"] .attributes-tab-contents > .main-panel';
+
 /** The first tab in a Quadrone sheet is the tab right after the sidebar container. */
 const FIRST_TAB = '.main-content > [data-tidy-sheet-part="sidebar-container"] + .tidy-tab, .main-content > .sidebar + .tidy-tab';
 
@@ -155,14 +158,13 @@ export function registerTidy(api) {
     }
   });
 
-  // Classic sheets can't host the pinned panel, so they always keep the Perils tab.
-  api.registerCharacterTab(perils(), { layout: "classic" });
+  api.registerCharacterTab(perils({ hideWhenPinned: true }), { layout: "classic" });
   api.registerCharacterTab(perils({ hideWhenPinned: true }), { layout: "quadrone" });
 
   // Pinned: the same panel at the bottom of the first tab, under whatever list that tab shows.
-  api.registerCharacterContent(new api.models.HandlebarsContent({
+  const pinned = selector => new api.models.HandlebarsContent({
     path: `/${TEMPLATE}`,
-    injectParams: { selector: FIRST_TAB, position: "beforeend" },
+    injectParams: { selector, position: "beforeend" },
     enabled: context => isPc(context) && isPinned(),
     getData: async context => trackerContext(context.actor, {
       editable: context.editable ?? context.actor?.isOwner, tidy: true, pinnable: true, pinned: true
@@ -172,7 +174,9 @@ export function registerTidy(api) {
       const root = params.element?.querySelector(".shr-tracker.shr-pinned");
       if (actor && root) bindTracker(root, actor);
     }
-  }), { layout: "quadrone" });
+  });
+  api.registerCharacterContent(pinned(CLASSIC_PANEL), { layout: "classic" });
+  api.registerCharacterContent(pinned(FIRST_TAB), { layout: "quadrone" });
 }
 
 /** Re-render every open player character sheet (used after the pin preference changes). */
@@ -191,8 +195,7 @@ export async function togglePinned(actor) {
     if (next) {
       // The Perils tab is about to disappear: land on the first tab, where the panel now lives.
       if (app.currentTabId === PERILS_TAB) {
-        const first = app.element?.querySelector(FIRST_TAB)?.dataset.tabContentsFor;
-        if (first) app.currentTabId = first;
+        app.currentTabId = app.element?.querySelector(FIRST_TAB)?.dataset.tabContentsFor ?? "attributes";
       }
     } else if (app.document === actor || app.document.id === actor.id) {
       app.currentTabId = PERILS_TAB;
