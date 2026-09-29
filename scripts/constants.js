@@ -151,18 +151,69 @@ export const BODY_ARMOUR_TYPES = ["light", "medium", "heavy"];
  *   On the main and NPC tables, `permanent: true` (and key null) means "roll on the Permanent Wound table".
  */
 export function resolveResult(table, value, owned = new Set(), wounds = WOUNDS, tables = TABLES) {
-  const { min, max, results } = tables[table];
+  const { min, max, results, repeat = {} } = tables[table];
   const skipped = [];
   let r = Math.min(Math.floor(value), max);
   while (r >= min) {
     const key = results[r];
-    if (key && (wounds[key].repeatable || !owned.has(key))) return { result: r, key, permanent: false, skipped };
+    // A gap in an edited table (a deleted result) is passed over silently.
+    if (key === undefined) { r--; continue; }
+    // "*" on the result itself (per table) decides repeatable; otherwise the wound's own setting.
+    const repeatable = repeat[r] ?? wounds[key]?.repeatable;
+    if (repeatable || !owned.has(key)) return { result: r, key, permanent: false, skipped };
     skipped.push(r);
     r--;
   }
   if (table !== "permanent") return { result: Math.min(r, 2), key: null, permanent: true, skipped };
-  // Permanent table floor: result 1.
-  return { result: min, key: results[min], permanent: false, skipped };
+  // Permanent table floor: the lowest result that exists.
+  const floor = Object.keys(results).map(Number).sort((a, b) => a - b)[0];
+  return floor === undefined ? { result: min, key: null, permanent: false, skipped } : { result: floor, key: results[floor], permanent: false, skipped };
+}
+
+/* -------------------------------------------- */
+/*  Wound automation                            */
+/* -------------------------------------------- */
+
+/**
+ * What a wound does, in one flat shape (this is what the automation dropdowns on a table result edit):
+ *  statuses     conditions applied by the wound's Active Effect
+ *  escalate     extra conditions from the second instance of the same wound onward
+ *  halveHp      hit point maximum halved
+ *  speed        walking speed halved; a second instance sets it to 0
+ *  exhaustion   levels of exhaustion gained when the wound is gained
+ *  prone        knocked prone when gained
+ *  closeCall    at 0 HP, drop to 1 HP instead (and prone)
+ *  fatal        the creature dies
+ *  skills       skill abbreviations rolled at disadvantage (prc, inv, ...)
+ *  initiative   disadvantage on initiative
+ */
+export function normalizeAuto(a = {}) {
+  const list = v => (Array.isArray(v) ? v : v ? Object.values(v) : []).filter(Boolean).map(String);
+  return {
+    statuses: list(a.statuses), escalate: list(a.escalate),
+    halveHp: !!a.halveHp, speed: !!a.speed,
+    exhaustion: Math.max(0, Math.floor(Number(a.exhaustion) || 0)),
+    prone: !!a.prone, closeCall: !!a.closeCall, fatal: !!a.fatal,
+    skills: list(a.skills), initiative: !!a.initiative
+  };
+}
+
+/** The automation described by a wound definition (WOUNDS entry). */
+export function specFromDef(def) {
+  if (!def) return normalizeAuto();
+  if (def.auto) return normalizeAuto(def.auto);
+  const skills = [];
+  let initiative = false;
+  for (const c of def.changes ?? []) {
+    const m = String(c.key).match(/^system\.skills\.(\w+)\.roll\.mode$/);
+    if (m) skills.push(m[1]);
+    else if (c.key === "system.attributes.init.roll.mode") initiative = true;
+  }
+  return normalizeAuto({
+    statuses: def.statuses, escalate: def.escalate?.statuses, halveHp: def.halveHp, speed: def.speed,
+    exhaustion: def.onGain === "exhaustion" ? 1 : 0, prone: def.onGain === "prone",
+    closeCall: def.onGain === "closeCall", fatal: def.onGain === "fatal", skills, initiative
+  });
 }
 
 /** How many existing instances of `key` precede the wound at `position` in the list. */

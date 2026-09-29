@@ -17,6 +17,7 @@ import {
 } from "./armour.js";
 import { manualShieldBlock } from "./shield-block.js";
 import { esc } from "./chat.js";
+import { keyName } from "./tables.js";
 
 export const TEMPLATE = `modules/${MODULE_ID}/templates/tracker.hbs`;
 const LAST_HIT_WINDOW = 10 * 60 * 1000;
@@ -260,7 +261,7 @@ function woundOptions() {
     for (const [result, key] of Object.entries(CONFIG.SHR.TABLES[table].results)) {
       if (seen.has(key)) continue;
       seen.add(key);
-      items.push(`<option value="${key}">${esc(`${result} · ${t(`Wound.${key}.Name`)}${CONFIG.SHR.WOUNDS[key].repeatable ? "*" : ""}`)}</option>`);
+      items.push(`<option value="${key}">${esc(`${result} · ${keyName(key)}${CONFIG.SHR.WOUNDS[key].repeatable ? "*" : ""}`)}</option>`);
     }
     return items.length ? `<optgroup label="${label}">${items.join("")}</optgroup>` : "";
   };

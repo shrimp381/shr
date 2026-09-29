@@ -5,95 +5,7 @@
       "bleeding": "Bleeding"
     },
     "Wound": {
-      "Custom": "Custom Wound",
-      "internalBleeding": {
-        "Name": "Internal Bleeding",
-        "Text": "You have suffered an internal haemorrhage and bruising. Your hit point maximum is halved."
-      },
-      "concussion": {
-        "Name": "Concussion",
-        "Text": "You have received a minor concussion and struggle to focus on complicated tasks. You gain the dazed condition."
-      },
-      "laceration": {
-        "Name": "Laceration",
-        "Text": "You have taken a deep injury which you are bleeding from. You gain the bleeding condition."
-      },
-      "deepWound": {
-        "Name": "Deep Wound",
-        "Text": "You have taken a blow that under different circumstances would kill most humanoids. When you are reduced to 0 hit points, you start with an additional failed death saving throw."
-      },
-      "battered": {
-        "Name": "Battered",
-        "Text": "Your muscles ache and you have had the wind knocked out of you. You gain a level of exhaustion."
-      },
-      "sprainedWrist": {
-        "Name": "Sprained Wrist",
-        "Text": "You have badly sprained your wrist, unable to use it effectively. You are unable to hold objects in one of your hands and you cannot take actions that require that arm."
-      },
-      "damagedEardrum": {
-        "Name": "Damaged Eardrum",
-        "Text": "You have suffered a blow to the head and your hearing has been impaired. You gain the deafened condition."
-      },
-      "systemShock": {
-        "Name": "System Shock",
-        "Text": "You have suffered a severe nervous system shock. You have disadvantage on Dexterity checks to determine initiative."
-      },
-      "sprainedAnkle": {
-        "Name": "Sprained Ankle",
-        "Text": "You have badly sprained your ankle, unable to use it effectively. Your speed on foot is halved and you cannot take the Dash action. If you receive this result a second time your speed on foot becomes 0."
-      },
-      "closeCall": {
-        "Name": "Close Call",
-        "Text": "You narrowly miss an otherwise dangerous blow. Instead of being reduced to 0 hit points, you fall to 1 hit point instead, and become prone."
-      },
-      "fatalWound": {
-        "Name": "Fatal Wound",
-        "Text": "Through an unrecoverable injury you have been fatally wounded. You are now dead."
-      },
-      "lostArm": {
-        "Name": "Lost Arm",
-        "Text": "You have suffered a serious injury to your arm or have lost it entirely. You are unable to hold objects in one of your arms and you cannot take actions that require two arms."
-      },
-      "lostLeg": {
-        "Name": "Lost Leg",
-        "Text": "You have suffered a serious injury to your leg or have lost it entirely. Your speed on foot is halved and you cannot take the Dash action. If you receive this result again your speed on foot becomes 0."
-      },
-      "lostEye": {
-        "Name": "Lost Eye",
-        "Text": "You have lost the use of a good eye. You have disadvantage on Wisdom (Perception) and Intelligence (Investigation) checks that rely on sight. If you receive this result again, you gain the blinded condition."
-      },
-      "scarredLungs": {
-        "Name": "Scarred Lungs",
-        "Text": "Undertaking vigorous activities causes you to break out in a coughing fit. If you take an action, you cannot take a bonus action until your next turn. If you take a bonus action you cannot take an action until your next turn."
-      },
-      "hideousScar": {
-        "Name": "Hideous Scar",
-        "Text": "You have been horribly and visibly scarred. You have disadvantage on Charisma (Performance) and Charisma (Persuasion) checks. Additionally, indifferent NPCs may prefer not to converse with you."
-      },
-      "collapsedLung": {
-        "Name": "Collapsed Lung",
-        "Text": "The internal organs of the creature receive significant damage, or their otherwise integral systems begin shutting down. If the creature moves more than 10 feet on its turn, it must make a DC 10 Constitution saving throw or their movement is reduced to 0. Additionally, they can only speak in short, clipped sentences. If the creature tries to cast a spell with a verbal component, they must make a [DC 10 + spell level] Constitution saving throw or the spell fails."
-      },
-      "tornMuscle": {
-        "Name": "Torn Muscle",
-        "Text": "The creature's muscles rip or their form otherwise takes significant damage that impedes their ability to attack. If they have the 'Multiattack' feature, the number of attacks they can make is reduced to by half. If they do not have such a feature, they instead cannot take bonus actions."
-      },
-      "wornOut": {
-        "Name": "Worn Out",
-        "Text": "The creature's haggard breathing or deteriorating form betrays them. Their melee attacks that use strength or dexterity have their damage halved."
-      },
-      "impairedVision": {
-        "Name": "Impaired Vision",
-        "Text": "The creature has suffered a blow to the head impairing its vision, all ranged attacks are at Disadvantage. If they suffer the same injury again they are considered Blind."
-      },
-      "desperatePanic": {
-        "Name": "Desperate Panic",
-        "Text": "The severity of the wound causes a brief shock to the creature, causing their actions to become desperate. They receive the frightened condition. They may make a [DC10 + Attackers Prof] Wisdom saving throw at the end of their turns to end this condition."
-      },
-      "brutalBlow": {
-        "Name": "Brutal Blow",
-        "Text": "The Creature suffers a heavy blow that knocks them prone, they suffer an extra die of damage (without modifiers)."
-      }
+      "Custom": "Custom Wound"
     },
     "Tracker": {
       "Tab": "Perils",
@@ -137,7 +49,8 @@
       "Reroll": "Reroll: 2d6 = {roll} &minus; {count} existing wound(s) = <strong>{value}</strong>",
       "NpcRerolled": "Not a significant NPC: rerolling.",
       "NpcRerollLimit": "Ten rerolls all gave a permanent wound: taking the best result left.",
-      "NpcPermanent": "Significant NPC: permanent wound (no save)."
+      "NpcPermanent": "Significant NPC: permanent wound (no save).",
+      "PermanentDirect": "Permanent Wound! Rolling on the Permanent Wound table."
     },
     "Hit": {
       "Title": "{name}: armour and injuries",
@@ -361,7 +274,46 @@
         "Ask": "Ask the GM each time",
         "Always": "Always apply it",
         "Reroll": "Always reroll"
+      },
+      "permanentSave": {
+        "Name": "Constitution save before a Permanent Wound",
+        "Hint": "The rules text on the Wounds & Injuries table sends a roll of 2 or less straight to the Permanent Wound table. Turn this on to add a Constitution save (DC half the damage taken) first; a success avoids the wound."
+      },
+      "tables": {
+        "Name": "Wound tables",
+        "Label": "Open or reset wound tables",
+        "Hint": "The three wound tables are ordinary roll tables in the world (in the \"Shrimp's Homebrew Rules\" folder). Edit them to change wounds, ranges or severity, or reset them to the defaults here."
       }
+    },
+    "Tables": {
+      "MenuTitle": "Wound tables",
+      "MenuBody": "Open a table to edit it: change a result's text, move its range, delete results to shorten the table, or add your own. Reset puts all three back to the campaign defaults.",
+      "Main": "Wounds & Injuries",
+      "Npc": "Wounds & Injuries (NPC)",
+      "Permanent": "Permanent Wound",
+      "Reset": "Reset all to defaults",
+      "ResetTitle": "Reset wound tables",
+      "ResetBody": "Replace the results of all three wound tables with the defaults? Your changes to them will be lost.",
+      "ResetDone": "Wound tables reset to the defaults."
+    },
+    "Automation": {
+      "Title": "Wound automation (SHR)",
+      "Hint": "What happens automatically when this wound is rolled. Wounds the module knows start with their usual effects; change them here. A result the module doesn't know only applies what you choose.",
+      "Statuses": "Conditions",
+      "StatusesHint": "Applied as long as the wound lasts.",
+      "Escalate": "Extra conditions on a repeat",
+      "EscalateHint": "Added from the second time the same wound is gained.",
+      "Skills": "Disadvantage on skill checks",
+      "SkillsHint": "Skill checks made at disadvantage.",
+      "Initiative": "Disadvantage on initiative",
+      "HalveHp": "Halve hit point maximum",
+      "Speed": "Halve walking speed",
+      "SpeedHint": "A second instance sets speed to 0.",
+      "Exhaustion": "Levels of exhaustion gained",
+      "Prone": "Knocked prone",
+      "CloseCall": "Close call",
+      "CloseCallHint": "At 0 HP, fall to 1 HP instead (and prone).",
+      "Fatal": "Fatal (dead)"
     }
   }
 }

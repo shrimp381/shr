@@ -2,7 +2,7 @@
   "id": "shr",
   "title": "Shrimp's Homebrew Rules",
   "description": "Automates Shrimp's homebrew rules for D&D 5e (built from The Crucible Worlds rules): ablated armour (critical hits and massive damage, shields first, magic armour recovery, repairs), shields stopping massive damage, the Shield Block reaction, Wounds and Injuries for player characters and NPCs, Permanent Wounds with duplicate skipping, exhaustion at 0 HP, and a Wound Tracker on the character sheet (default dnd5e sheet, or on Tidy 5e as a Perils tab that can be pinned to the first tab).",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "compatibility": {
     "minimum": "13",
     "verified": "13"

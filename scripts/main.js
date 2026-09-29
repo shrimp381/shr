@@ -37,6 +37,7 @@ import {
 import { manualShieldBlock, blockDialog, QUERY as BLOCK_QUERY } from "./shield-block.js";
 import { TEMPLATE, injectTracker, registerTidy, potionPrompt } from "./ui.js";
 import { bindChatCard, postCard } from "./chat.js";
+import { loadTables, ensureTables, resetTables, registerTableHooks, injectAutomation, findTable } from "./tables.js";
 
 /* -------------------------------------------- */
 /*  Init                                        */
@@ -51,6 +52,8 @@ Hooks.once("init", () => {
     TABLES: foundry.utils.deepClone(TABLES),
     REPAIR, MENDING_LIMIT, MAGIC_RECOVERY, EXEMPT_AC_CALCS
   };
+  // Until the world's roll tables are available, the rules use the default tables.
+  loadTables();
 
   // v13 user queries: Shield Block prompts on the player's client, midi-qol hit context to the GM.
   CONFIG.queries ??= {};
@@ -71,7 +74,9 @@ Hooks.once("init", () => {
     // Shield Block (macro): SHR.shieldBlock(actor)
     shieldBlock: actor => manualShieldBlock(actor ?? canvas.tokens?.controlled[0]?.actor ?? game.user.character),
     // Run the rules for a hit by hand: processHit(actor, {dealt, droppedToZero}, {crit, isAttack, types})
-    processHit
+    processHit,
+    // Roll tables: reload after editing, or reset to the defaults (GM)
+    tables: { load: loadTables, reset: resetTables, get: findTable }
   };
   game.modules.get(MODULE_ID).api = api;
   globalThis.SHR = api;
@@ -84,9 +89,15 @@ Hooks.once("setup", () => {
   }
 });
 
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
   trackDamageClicks();
+  registerTableHooks();
+  loadTables();
+  await ensureTables();
 });
+
+/** Conditions and effects pickers on a wound table result. */
+Hooks.on("renderTableResultConfig", injectAutomation);
 
 /* -------------------------------------------- */
 /*  Damage                                      */

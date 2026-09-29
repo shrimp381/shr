@@ -145,3 +145,8 @@
 .attributes-tab-contents > .main-panel:has(> .shr-tracker.shr-pinned) > :not(.shr-tracker) { flex: 0 0 auto; }
 .attributes-tab-contents > .main-panel:has(> .shr-tracker.shr-pinned) > .flex-column { flex: 1 1 0; min-height: 4rem; overflow-y: auto; }
 .main-panel > .shr-tracker.shr-pinned { flex: 0 0 auto; max-height: 45%; overflow-y: auto; margin: auto 0 0; }
+
+/* Wound automation controls added to a roll-table result editor */
+fieldset.shr-automation { margin: 0.5rem 0; }
+fieldset.shr-automation legend { font-weight: bold; }
+fieldset.shr-automation .hint { margin: 0 0 0.5rem; }

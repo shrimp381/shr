@@ -12,7 +12,9 @@
  * @typedef {object} Wound
  * @property {string} id
  * @property {string} key          a WOUNDS key, or "custom"
- * @property {string|null} name    custom name (custom wounds only)
+ * @property {string|null} name    the wound's name when it was gained (from the table result)
+ * @property {string} [text]       its text when it was gained
+ * @property {object} [auto]       the automation it was gained with (table result setting); absent = the built-in one
  * @property {boolean} permanent
  * @property {boolean} suppressed  subdued until the next rest (potion, grit and bear it)
  * @property {string} source       "roll" | "manual"
@@ -20,11 +22,13 @@
  * @property {number} [hpReduction] Internal Bleeding: HP max lost
  * @property {string} note
  */
-import { MODULE_ID, resolveResult, instanceIndex, TABLES } from "./constants.js";
+import { MODULE_ID, resolveResult, instanceIndex, specFromDef, normalizeAuto } from "./constants.js";
+import { keyName } from "./tables.js";
 import { setting, t, tf } from "./settings.js";
 import { postCard, esc } from "./chat.js";
 
-const defs = () => CONFIG.CRUCIBLE.WOUNDS;
+const defs = () => CONFIG.SHR.WOUNDS;
+const tables = () => CONFIG.SHR.TABLES;
 
 /* -------------------------------------------- */
 /*  Reading                                     */
@@ -41,14 +45,15 @@ export function woundCount(actor, wounds = getWounds(actor)) {
 }
 
 export function woundName(wound) {
-  if (wound.key === "custom" || !defs()[wound.key]) return wound.name || t("Wound.Custom");
-  return t(`Wound.${wound.key}.Name`);
+  return wound.name || (defs()[wound.key] ? keyName(wound.key) : "") || t("Wound.Custom");
 }
 
 export function woundText(wound) {
-  if (wound.key === "custom" || !defs()[wound.key]) return wound.note ?? "";
-  return t(`Wound.${wound.key}.Text`);
+  return wound.text || defs()[wound.key]?.text || (defs()[wound.key] ? "" : wound.note) || "";
 }
+
+/** What a wound does: the automation it was gained with, else its definition's. */
+const specFor = wound => (wound.auto ? normalizeAuto(wound.auto) : specFromDef(defs()[wound.key]));
 
 export const isWoundable = actor => actor?.type === "character" || (actor?.type === "npc" && setting("woundsNpc"));
 
@@ -60,7 +65,7 @@ async function saveWounds(actor, wounds) {
   await actor.update({
     [`flags.${MODULE_ID}.wounds`]: wounds,
     [`flags.${MODULE_ID}.woundCount`]: woundCount(actor, wounds)
-  }, { cwInternal: true });
+  }, { shrInternal: true });
   await syncWoundEffects(actor);
 }
 
@@ -69,7 +74,9 @@ async function saveWounds(actor, wounds) {
  * @param {Actor} actor
  * @param {string} key                 WOUNDS key or "custom"
  * @param {object} [options]
- * @param {string} [options.name]      custom wounds
+ * @param {string} [options.name]      the name to record (custom wounds; table rolls record the result's name)
+ * @param {string} [options.text]      the text to record
+ * @param {object} [options.auto]      automation from the table result (conditions, effects)
  * @param {boolean} [options.permanent] custom wounds
  * @param {string} [options.note]
  * @param {string} [options.source="manual"]
@@ -81,33 +88,36 @@ export async function addWound(actor, key, options = {}) {
   const def = defs()[key];
   const wounds = getWounds(actor);
   if (def && !def.repeatable && !options.force && wounds.some(w => w.key === key)) {
-    ui.notifications.warn(tf("Notify.AlreadyHas", { name: t(`Wound.${key}.Name`) }));
+    ui.notifications.warn(tf("Notify.AlreadyHas", { name: keyName(key) }));
     return null;
   }
   const wound = {
     id: foundry.utils.randomID(),
     key: def ? key : "custom",
-    name: def ? null : (options.name || t("Wound.Custom")),
-    permanent: def ? def.table === "permanent" : !!options.permanent,
+    name: options.name || (def ? null : t("Wound.Custom")),
+    text: options.text || undefined,
+    auto: options.auto ? normalizeAuto(options.auto) : undefined,
+    permanent: def ? !!def.permanent : !!options.permanent,
     suppressed: false,
     source: options.source ?? "manual",
     result: options.result ?? null,
     note: options.note ?? "",
     created: Date.now()
   };
-  if (def?.halveHp) {
+  const spec = specFor(wound);
+  if (spec.halveHp) {
     const hp = actor.system.attributes.hp;
     const max = hp.effectiveMax ?? (hp.max + (hp.tempmax ?? 0));
     wound.hpReduction = Math.floor(max / 2);
   }
   wounds.push(wound);
   await saveWounds(actor, wounds);
-  if (def?.halveHp) {
+  if (spec.halveHp) {
     const hp = actor.system.attributes.hp;
     const max = hp.effectiveMax ?? hp.max;
-    if (hp.value > max) await actor.update({ "system.attributes.hp.value": max }, { cwInternal: true });
+    if (hp.value > max) await actor.update({ "system.attributes.hp.value": max }, { shrInternal: true });
   }
-  if (options.immediate !== false) await onGain(actor, wound, def);
+  if (options.immediate !== false) await onGain(actor, spec);
   return wound;
 }
 
@@ -125,30 +135,27 @@ export async function setSuppressed(actor, id, suppressed) {
 }
 
 /** One-off effects when a wound is gained. */
-async function onGain(actor, wound, def) {
-  switch (def?.onGain) {
-    case "exhaustion":
-      await changeExhaustion(actor, 1);
-      break;
-    case "closeCall": {
-      if ((actor.system.attributes.hp.value ?? 0) <= 0) {
-        await actor.update({
-          "system.attributes.hp.value": 1,
-          "system.attributes.death.success": 0,
-          "system.attributes.death.failure": 0
-        }, { cwInternal: true });
-        if (actor.statuses?.has("unconscious")) await actor.toggleStatusEffect("unconscious", { active: false });
-      }
-      await actor.toggleStatusEffect("prone", { active: true });
-      break;
-    }
-    case "fatal":
+async function onGain(actor, spec) {
+  if (spec.exhaustion) await changeExhaustion(actor, spec.exhaustion);
+  if (spec.closeCall) {
+    if ((actor.system.attributes.hp.value ?? 0) <= 0) {
       await actor.update({
-        "system.attributes.hp.value": 0,
-        "system.attributes.death.failure": 3
-      }, { cwInternal: true });
-      await actor.toggleStatusEffect("dead", { active: true, overlay: true });
-      break;
+        "system.attributes.hp.value": 1,
+        "system.attributes.death.success": 0,
+        "system.attributes.death.failure": 0
+      }, { shrInternal: true });
+      if (actor.statuses?.has("unconscious")) await actor.toggleStatusEffect("unconscious", { active: false });
+    }
+    await actor.toggleStatusEffect("prone", { active: true });
+  } else if (spec.prone) {
+    await actor.toggleStatusEffect("prone", { active: true });
+  }
+  if (spec.fatal) {
+    await actor.update({
+      "system.attributes.hp.value": 0,
+      "system.attributes.death.failure": 3
+    }, { shrInternal: true });
+    await actor.toggleStatusEffect("dead", { active: true, overlay: true });
   }
 }
 
@@ -156,7 +163,7 @@ export async function changeExhaustion(actor, delta) {
   const current = Number(actor.system.attributes?.exhaustion ?? 0) || 0;
   const max = CONFIG.DND5E?.conditionTypes?.exhaustion?.levels ?? 6;
   const next = Math.clamp(current + delta, 0, max);
-  if (next !== current) await actor.update({ "system.attributes.exhaustion": next }, { cwInternal: true });
+  if (next !== current) await actor.update({ "system.attributes.exhaustion": next }, { shrInternal: true });
   return next;
 }
 
@@ -166,19 +173,21 @@ export async function changeExhaustion(actor, delta) {
 
 function effectData(actor, wound, index) {
   const def = defs()[wound.key];
+  const spec = specFor(wound);
   const M = CONST.ACTIVE_EFFECT_MODES;
-  const statuses = [...(def?.statuses ?? [])];
+  const statuses = [...spec.statuses];
   const changes = [];
-  if (def?.halveHp && wound.hpReduction) {
+  if (spec.halveHp && wound.hpReduction) {
     changes.push({ key: "system.attributes.hp.tempmax", mode: M.ADD, value: String(-wound.hpReduction) });
   }
-  if (def?.speed) {
+  if (spec.speed) {
     changes.push(index === 0
       ? { key: "system.attributes.movement.walk", mode: M.MULTIPLY, value: "0.5" }
       : { key: "system.attributes.movement.walk", mode: M.OVERRIDE, value: "0", priority: 60 });
   }
-  for (const c of def?.changes ?? []) changes.push({ key: c.key, mode: M[c.mode] ?? M.ADD, value: c.value });
-  if (def?.escalate && index >= 1) statuses.push(...(def.escalate.statuses ?? []));
+  if (spec.initiative) changes.push({ key: "system.attributes.init.roll.mode", mode: M.ADD, value: "-1" });
+  for (const skill of spec.skills) changes.push({ key: `system.skills.${skill}.roll.mode`, mode: M.ADD, value: "-1" });
+  if (index >= 1) statuses.push(...spec.escalate.filter(s => !statuses.includes(s)));
 
   const kind = wound.permanent ? t("Tracker.Permanent") : t("Tracker.Temporary");
   return {
@@ -214,9 +223,9 @@ export async function syncWoundEffects(actor) {
     if (effectSignature(current) !== effectSignature(data)) update.push({ _id: effect.id, ...data });
   });
   const remove = [...existing.values()].map(e => e.id);
-  if (remove.length) await actor.deleteEmbeddedDocuments("ActiveEffect", remove, { cwInternal: true });
-  if (update.length) await actor.updateEmbeddedDocuments("ActiveEffect", update, { cwInternal: true });
-  if (create.length) await actor.createEmbeddedDocuments("ActiveEffect", create, { cwInternal: true });
+  if (remove.length) await actor.deleteEmbeddedDocuments("ActiveEffect", remove, { shrInternal: true });
+  if (update.length) await actor.updateEmbeddedDocuments("ActiveEffect", update, { shrInternal: true });
+  if (create.length) await actor.createEmbeddedDocuments("ActiveEffect", create, { shrInternal: true });
 }
 
 /* -------------------------------------------- */
@@ -224,21 +233,47 @@ export async function syncWoundEffects(actor) {
 /* -------------------------------------------- */
 
 const ownedKeys = wounds => new Set(wounds.map(w => w.key));
+const resolve = (table, value, wounds) => resolveResult(table, value, ownedKeys(wounds), defs(), tables());
+
+/** The wound table this creature rolls on: NPCs have their own. */
+export const woundTable = actor => (actor?.type === "npc" ? "npc" : "main");
 
 function skippedText(table, skipped) {
   if (!skipped.length) return "";
-  const index = {};
-  for (const [key, def] of Object.entries(defs())) if (def.table === table) index[def.result] = key;
-  const names = skipped.map(r => `${r} (${t(`Wound.${index[r]}.Name`)})`).join(", ");
+  const results = tables()[table].results;
+  const names = skipped.map(r => `${r} (${keyName(results[r])})`).join(", ");
   return tf("Roll.Skipped", { list: names });
 }
 
+/** Name, text and automation of a table result, recorded on the wound so later table edits don't rewrite it. */
+function entryOptions(table, result) {
+  const entry = tables()[table]?.entries?.[result];
+  return entry ? { name: entry.name, text: entry.text, auto: entry.auto ?? undefined } : {};
+}
+
 function woundLine(wound, result) {
-  return `<div class="cw-card-wound ${wound.permanent ? "perm" : ""}"><strong>${result ?? ""}${result != null ? " · " : ""}${esc(woundName(wound))}</strong><p>${esc(woundText(wound))}</p></div>`;
+  return `<div class="shr-card-wound ${wound.permanent ? "perm" : ""}"><strong>${result ?? ""}${result != null ? " · " : ""}${esc(woundName(wound))}</strong><p>${esc(woundText(wound))}</p></div>`;
 }
 
 /**
- * Roll on the Wounds and Injuries table.
+ * NPC rolled 2 or less: "Permanent Wound ... (Reroll if not a significant NPC)".
+ * The npcPermanent setting decides: always apply, always reroll, or ask the GM.
+ */
+async function npcTakesPermanent(actor) {
+  const mode = setting("npcPermanent");
+  if (mode === "always") return true;
+  if (mode === "reroll") return false;
+  return !!(await foundry.applications.api.DialogV2.confirm({
+    window: { title: t("Dialog.NpcPermanentTitle"), icon: "fa-solid fa-skull" },
+    content: `<div class="shr-dialog"><p>${tf("Dialog.NpcPermanentBody", { name: esc(actor.name) })}</p></div>`,
+    yes: { label: t("Dialog.NpcPermanentYes") },
+    no: { label: t("Dialog.NpcPermanentNo") },
+    rejectClose: false
+  }));
+}
+
+/**
+ * Roll on the Wounds and Injuries table (the NPC table for NPCs).
  * @param {Actor} actor
  * @param {object} [options]
  * @param {string} [options.reason="manual"]   "zero" | "massive" | "manual"
@@ -248,29 +283,55 @@ function woundLine(wound, result) {
 export async function rollWound(actor, { reason = "manual", damage = 0, lines = [] } = {}) {
   const wounds = getWounds(actor);
   const count = woundCount(actor, wounds);
-  const roll = await new Roll(TABLES.main.die).evaluate();
-  const value = roll.total - count;
-  const res = resolveResult("main", value, ownedKeys(wounds), defs());
-
+  const table = woundTable(actor);
+  const rolls = [];
   const card = [...lines];
-  card.push(tf("Roll.Main", { reason: t(`Roll.Reason.${reason}`), roll: roll.total, count, value }));
-  const skipped = skippedText("main", res.skipped);
-  if (skipped) card.push(skipped);
+
+  let res;
+  for (let attempt = 0; ; attempt++) {
+    const roll = await new Roll(tables()[table].die).evaluate();
+    rolls.push(roll);
+    const value = roll.total - count;
+    res = resolve(table, value, wounds);
+    card.push(attempt
+      ? tf("Roll.Reroll", { roll: roll.total, count, value })
+      : tf("Roll.Main", { reason: t(`Roll.Reason.${reason}`), roll: roll.total, count, value }));
+    const skipped = skippedText(table, res.skipped);
+    if (skipped) card.push(skipped);
+    if (!res.permanent || table !== "npc") break;
+    if (await npcTakesPermanent(actor)) break;
+    card.push(t("Roll.NpcRerolled"));
+    if (attempt >= 9) {
+      // Ten rerolls in a row all landed on a permanent wound: take the best result left.
+      res = resolve(table, tables()[table].max, wounds);
+      card.push(t("Roll.NpcRerollLimit"));
+      break;
+    }
+  }
 
   if (res.permanent) {
+    if (table === "npc") {
+      card.push(`<strong>${t("Roll.NpcPermanent")}</strong>`);
+      return rollPermanent(actor, { lines: card, rolls });
+    }
+    if (!setting("permanentSave")) {
+      // As on the Wounds & Injuries table: roll on the Permanent Wound table and apply the result.
+      card.push(`<strong>${t("Roll.PermanentDirect")}</strong>`);
+      return rollPermanent(actor, { lines: card, rolls });
+    }
     const dc = Math.max(1, Math.floor(damage / 2));
     const id = foundry.utils.randomID();
     await actor.setFlag(MODULE_ID, "pendingPermanent", { id, dc, damage });
     card.push(`<strong>${t("Roll.PermanentTriggered")}</strong>`);
-    const body = `<button type="button" class="cw-card-button" data-cw-chat="permSave" data-actor-uuid="${actor.uuid}" data-pending-id="${id}">
+    const body = `<button type="button" class="shr-card-button" data-shr-chat="permSave" data-actor-uuid="${actor.uuid}" data-pending-id="${id}">
       <i class="fa-solid fa-shield-heart"></i> ${tf("Roll.PermanentSave", { dc })}</button>`;
-    await postCard(actor, { title: tf("Roll.Title", { name: esc(actor.name) }), lines: card, rolls: [roll], body });
-    return { permanent: true, dc, roll };
+    await postCard(actor, { title: tf("Roll.Title", { name: esc(actor.name) }), lines: card, rolls, body });
+    return { permanent: true, dc, roll: rolls.at(-1) };
   }
 
-  const wound = await addWound(actor, res.key, { source: "roll", result: res.result, force: true });
-  await postCard(actor, { title: tf("Roll.Title", { name: esc(actor.name) }), lines: card, rolls: [roll], body: woundLine(wound, res.result) });
-  return { wound, roll };
+  const wound = await addWound(actor, res.key, { source: "roll", result: res.result, force: true, ...entryOptions(table, res.result) });
+  await postCard(actor, { title: tf("Roll.Title", { name: esc(actor.name) }), lines: card, rolls, body: woundLine(wound, res.result) });
+  return { wound, roll: rolls.at(-1) };
 }
 
 /** Roll the Constitution save for a pending permanent wound, then the 1d6 table on a failure. */
@@ -302,16 +363,22 @@ export async function resolvePermanent(actor, pendingId) {
   return rollPermanent(actor, { lines: [tf("Roll.PermanentFailed", { total: save.total, dc: pending.dc })] });
 }
 
-/** Roll 1d6 on the Permanent Wound table. */
-export async function rollPermanent(actor, { lines = [] } = {}) {
+/**
+ * Roll 1d6 on the Permanent Wound table.
+ * @param {Actor} actor
+ * @param {object} [options]
+ * @param {string[]} [options.lines]   chat lines to lead the card with
+ * @param {Roll[]} [options.rolls]     earlier rolls to show on the same card
+ */
+export async function rollPermanent(actor, { lines = [], rolls: earlier = [] } = {}) {
   const wounds = getWounds(actor);
-  const roll = await new Roll(TABLES.permanent.die).evaluate();
-  const res = resolveResult("permanent", roll.total, ownedKeys(wounds), defs());
+  const roll = await new Roll(tables().permanent.die).evaluate();
+  const res = resolve("permanent", roll.total, wounds);
   const card = [...lines, tf("Roll.Permanent", { roll: roll.total })];
   const skipped = skippedText("permanent", res.skipped);
   if (skipped) card.push(skipped);
-  const wound = await addWound(actor, res.key, { source: "roll", result: res.result, force: true });
-  await postCard(actor, { title: tf("Roll.PermanentTitle", { name: esc(actor.name) }), icon: "fa-solid fa-skull", lines: card, rolls: [roll], body: woundLine(wound, res.result) });
+  const wound = await addWound(actor, res.key, { source: "roll", result: res.result, force: true, ...entryOptions("permanent", res.result) });
+  await postCard(actor, { title: tf("Roll.PermanentTitle", { name: esc(actor.name) }), icon: "fa-solid fa-skull", lines: card, rolls: [...earlier, roll], body: woundLine(wound, res.result) });
   return { wound, roll };
 }
 

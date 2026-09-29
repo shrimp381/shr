@@ -25,7 +25,7 @@ A Foundry VTT module that automates homebrew rules for D&D 5e. This release cove
 ### Wounds and Injuries
 - A player character who drops to **0 HP**, or takes **more than half their max HP** in one hit, rolls **2d6 minus their current wounds** on the Wounds table.
 - **Duplicates:** if the result is a wound they already have, it moves down to the next lowest one they don't have. Results marked **\*** are repeatable and skip this check.
-- **2 or less:** a Constitution save (DC = half the damage taken) is posted as a chat button. If the save fails, the character rolls 1d6 on the **Permanent Wound** table, which follows the same duplicate rule.
+- **2 or less:** a Permanent Wound: roll 1d6 on the **Permanent Wound** table (same duplicate rule). If you want the Constitution save (DC = half the damage taken) from the rules doc first, turn on **Constitution save before a Permanent Wound** in settings.
 - Each wound becomes an Active Effect:
 
 | Wound | Automation |
@@ -66,7 +66,7 @@ Turn on **NPC wounds and injuries** in the module settings and NPCs roll on thei
 | 11 | Sprained Ankle* | speed halved; a second one sets it to 0 |
 | 12 | Brutal Blow | Prone (the extra damage die is the GM's to roll) |
 
-The table doesn't mark repeatable wounds. Sprained Wrist and Sprained Ankle stay repeatable as they are for players, and Impaired Vision is repeatable because its second instance blinds the creature. Change any of them under `CONFIG.SHR.WOUNDS`.
+The exported table doesn't mark repeatable wounds. Sprained Wrist, Sprained Ankle and Impaired Vision have a `*` added in the default NPC table, because their text says what happens the second time. Remove the `*` in the table to change that.
 
 **NPC Permanent Wounds:** the table says to reroll unless the NPC is significant. The **NPC permanent wounds** setting decides: ask the GM each time (default), always apply, or always reroll. A permanent wound on an NPC has no Constitution save; it rolls straight on the Permanent Wound table.
 
@@ -92,8 +92,19 @@ On the default sheet, a panel sits in the sidebar under HP. It shows:
 
 On Tidy 5e, the same panel is a **Perils** tab. The **bookmark** in its header (the same icon Tidy uses to favourite an item) **pins the panel to the first tab** instead, at the bottom of that tab. The list above it (your favourites, weapons and abilities) gets shorter but keeps scrolling, and the panel scrolls on its own if it grows. While pinned, the Perils tab is hidden. Click the bookmark on the pinned panel to bring the tab back. This is a per-user preference, so each player chooses their own layout. It needs Tidy 5e's Quadrone sheet; the classic Tidy sheet always keeps the Perils tab.
 
+## Editing the wound tables
+The three tables (**Wounds & Injuries**, **Wounds & Injuries (NPC)**, **Permanent Wound**) are ordinary roll tables in your world, created the first time a GM loads it (in a "Shrimp's Homebrew Rules" folder). If your world already has tables with those exact names, the module uses those instead. Edit them like any roll table:
+- **Severity:** change a result's range, or swap wounds between results.
+- **Table size:** delete results to shorten a table; a roll that lands on a gap moves down to the next result.
+- **Text:** write the wound as *Name*. Text* in the description (a `*` after the name makes it repeatable on that table), or use the name field. A result called **Permanent Wound** on a 2d6 table sends the roll to the Permanent Wound table.
+- **New wounds:** add a result. It is tracked and shown on the sheet like any other wound.
+- **Automation:** open a result and use **Wound automation (SHR)**: pick conditions (Deafened, Blinded ...), extra conditions when the wound repeats, skill or initiative disadvantage, halved HP maximum or speed, exhaustion, prone, close call or fatal. Known wounds start with their usual effects. Whatever is set applies automatically when that result is rolled.
+- **Reset:** Settings → SHR → **Open or reset wound tables** opens a table or puts all three back to the defaults.
+
+A wound keeps the name, text and automation it was gained with, so editing a table doesn't change wounds already on a sheet.
+
 ## Settings
-All settings are world settings under **Configure Settings → Shrimp's Homebrew Rules**. They let you turn off or tune each rule: ablation, stat-block ablation, the shield's massive-damage mode, the Shield Block prompt (attacks, any damage, or off), Shield Block for NPCs and its timeout, magic armour recovery source and days per long rest, wounds, NPC wounds and injuries, NPC permanent wounds, whether permanent wounds count toward the penalty, exhaustion at 0 HP, long-rest Medicine checks, the potion prompt, and private chat cards.
+All settings are world settings under **Configure Settings → Shrimp's Homebrew Rules**. They let you turn off or tune each rule: ablation, stat-block ablation, the shield's massive-damage mode, the Shield Block prompt (attacks, any damage, or off), Shield Block for NPCs and its timeout, magic armour recovery source and days per long rest, wounds, NPC wounds and injuries, NPC permanent wounds, the optional Constitution save before a Permanent Wound, whether permanent wounds count toward the penalty, exhaustion at 0 HP, long-rest Medicine checks, the potion prompt, and private chat cards.
 
 ## Macros
 
@@ -116,17 +127,16 @@ SHR.rollWound(actor, { reason: "manual", damage: 18 });
 ## Customising the tables
 The rules data is in `CONFIG.SHR`. You can change it from a world script or a macro that runs on `ready`, for example:
 ```js
-CONFIG.SHR.WOUNDS.concussion.repeatable = true;   // allow Concussion more than once
 CONFIG.SHR.MAGIC_RECOVERY = [0.5, 1, 2];          // AC/day by magic bonus
 ```
-Wound definitions (table, result, repeatable, conditions, effect changes) are in `scripts/constants.js`.
+Wound definitions (repeatable, conditions, effect changes) are in `scripts/constants.js`; which wound sits on which result is in the roll tables. Roll-table edits are read automatically; after a script change call `SHR.tables.load()`.
 
 ## midi-qol
 With midi-qol active, crits and damage types are read from the midi workflow. Everything else works the same way. The automatic Shield Block prompt is turned off because midi applies damage on its own; use the tracker button or the macro instead.
 
 ## API
 `game.modules.get("shr").api` (also `globalThis.SHR`):
-`getWounds, woundCount, addWound, removeWound, setSuppressed, rollWound, rollPermanent, resolvePermanent, treatWound, syncWoundEffects, ablate, repairItem, recoverMagic, advanceDays, activeShield, shieldBlock, processHit`
+`tables.load, tables.reset, tables.get, getWounds, woundCount, addWound, removeWound, setSuppressed, rollWound, rollPermanent, resolvePermanent, treatWound, syncWoundEffects, ablate, repairItem, recoverMagic, advanceDays, activeShield, shieldBlock, processHit`
 
 ## Data
 - Actor flags `shr.wounds` (the wound list), `woundCount`, `pendingPermanent`, `lastHit`

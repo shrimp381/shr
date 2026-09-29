@@ -1,4 +1,5 @@
 import { MODULE_ID } from "./constants.js";
+import { makeTablesMenu } from "./tables.js";
 
 export const t = key => game.i18n.localize(`SHR.${key}`);
 export const tf = (key, data) => game.i18n.format(`SHR.${key}`, data);
@@ -35,11 +36,18 @@ export function registerSettings() {
     type: String, default: "ask",
     choices: { ask: "SHR.Settings.npcPermanent.Ask", always: "SHR.Settings.npcPermanent.Always", reroll: "SHR.Settings.npcPermanent.Reroll" }
   });
+  reg("permanentSave", { type: Boolean, default: false });
   reg("countPermanent", { type: Boolean, default: true });
   reg("exhaustionAtZero", { type: Boolean, default: true });
   reg("longRestTreatment", { type: Boolean, default: true });
   reg("potionPrompt", { type: Boolean, default: true });
   reg("whisperGM", { type: Boolean, default: false });
+
+  // The wound roll tables are ordinary RollTables; this menu opens them or resets them to the defaults.
+  game.settings.registerMenu(MODULE_ID, "tables", {
+    name: "SHR.Settings.tables.Name", label: "SHR.Settings.tables.Label", hint: "SHR.Settings.tables.Hint",
+    icon: "fa-solid fa-table-list", type: makeTablesMenu(), restricted: true
+  });
 
   // Per-user display preference: show the Perils panel on the first tab of Tidy 5e sheets
   // instead of as its own tab.
