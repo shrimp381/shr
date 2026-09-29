@@ -1,0 +1,80 @@
+<section class="cw-tracker {{#if tidy}}cw-tidy{{/if}}" data-actor-uuid="{{actorUuid}}">
+  <header class="cw-head">
+    <h3 class="cw-title"><i class="fa-solid fa-heart-crack"></i> {{localize "CW.Tracker.Wounds"}}</h3>
+    <span class="cw-penalty {{#if count}}active{{/if}}" data-tooltip="{{localize "CW.Tracker.PenaltyHint"}}" aria-label="{{localize "CW.Tracker.Penalty"}}">
+      <span class="cw-penalty-value">&minus;{{count}}</span>
+    </span>
+    {{#if editable}}
+    <span class="cw-head-controls">
+      <button type="button" class="cw-icon" data-cw-action="roll" data-tooltip="{{localize "CW.Tracker.RollWound"}}"><i class="fa-solid fa-dice"></i></button>
+      <button type="button" class="cw-icon" data-cw-action="add" data-tooltip="{{localize "CW.Tracker.AddWound"}}"><i class="fa-solid fa-plus"></i></button>
+    </span>
+    {{/if}}
+  </header>
+
+  {{#if pending}}
+  <div class="cw-pending">
+    <span><i class="fa-solid fa-triangle-exclamation"></i> {{localize "CW.Tracker.Pending"}}</span>
+    {{#if editable}}
+    <button type="button" data-cw-action="permSave" data-pending-id="{{pending.id}}">{{localize "CW.Tracker.RollSave"}} (DC {{pending.dc}})</button>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  <ul class="cw-wounds">
+    {{#each wounds}}
+    <li class="cw-wound {{#if permanent}}permanent{{/if}} {{#if suppressed}}suppressed{{/if}}" data-wound-id="{{id}}">
+      <img class="cw-wound-img" src="{{img}}" alt="">
+      <div class="cw-wound-body" data-cw-action="expand">
+        <div class="cw-wound-name">
+          {{name}}{{#if instance}} <span class="cw-instance">&times;{{instance}}</span>{{/if}}
+          <span class="cw-chip {{#if permanent}}perm{{else}}temp{{/if}}">{{#if permanent}}{{localize "CW.Tracker.Permanent"}}{{else}}{{localize "CW.Tracker.Temporary"}}{{/if}}</span>
+          {{#if suppressed}}<span class="cw-chip sup" data-tooltip="{{localize "CW.Tracker.SuppressedHint"}}">{{localize "CW.Tracker.Suppressed"}}</span>{{/if}}
+        </div>
+        {{#if text}}<div class="cw-wound-text">{{text}}</div>{{/if}}
+        {{#if note}}<div class="cw-wound-note">{{note}}</div>{{/if}}
+      </div>
+      {{#if ../editable}}
+      <div class="cw-wound-controls">
+        {{#unless permanent}}
+        <button type="button" class="cw-icon" data-cw-action="treat" data-tooltip="{{localize "CW.Tracker.Treat"}}"><i class="fa-solid fa-kit-medical"></i></button>
+        <button type="button" class="cw-icon" data-cw-action="suppress" data-tooltip="{{#if suppressed}}{{localize "CW.Tracker.Unsuppress"}}{{else}}{{localize "CW.Tracker.Suppress"}}{{/if}}"><i class="fa-solid {{#if suppressed}}fa-eye{{else}}fa-eye-slash{{/if}}"></i></button>
+        {{/unless}}
+        <button type="button" class="cw-icon danger" data-cw-action="remove" data-tooltip="{{localize "CW.Tracker.Remove"}}"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      {{/if}}
+    </li>
+    {{else}}
+    <li class="cw-empty">{{localize "CW.Tracker.NoWounds"}}</li>
+    {{/each}}
+  </ul>
+
+  <div class="cw-armour">
+    <h4 class="cw-subtitle"><i class="fa-solid fa-shield-halved"></i> {{localize "CW.Tracker.Armour"}}</h4>
+    {{#if exempt}}<p class="cw-exempt">{{exempt}}</p>{{/if}}
+    {{#each armour}}
+    <div class="cw-piece {{#if broken}}broken{{/if}}" data-item-id="{{id}}">
+      <img class="cw-piece-img" src="{{img}}" alt="">
+      <div class="cw-piece-body">
+        <div class="cw-piece-name">{{name}}{{#if bonus}} <span class="cw-bonus">+{{bonus}}</span>{{/if}}</div>
+        <div class="cw-pips" data-tooltip="{{cur}} / {{base}}">
+          {{#each pips}}<span class="cw-pip {{#if on}}on{{/if}}"></span>{{/each}}
+          <span class="cw-ac">{{cur}}/{{base}}</span>
+          {{#if broken}}<span class="cw-chip broken">{{localize "CW.Armour.Broken"}}</span>{{/if}}
+        </div>
+        {{#if rate}}<div class="cw-rate">{{rate}}</div>{{/if}}
+      </div>
+      {{#if ../editable}}{{#if canRepair}}
+      <button type="button" class="cw-small" data-cw-action="repair">{{repairLabel}}</button>
+      {{/if}}{{/if}}
+    </div>
+    {{else}}
+    <p class="cw-empty">{{localize "CW.Tracker.NoArmour"}}</p>
+    {{/each}}
+    {{#if shieldBlock}}
+    <button type="button" class="cw-block" data-cw-action="shieldBlock">
+      <i class="fa-solid fa-shield-halved"></i> {{localize "CW.Tracker.ShieldBlock"}} <span class="hint">({{shieldBlock.amount}} &rarr; +{{shieldBlock.refund}} HP)</span>
+    </button>
+    {{/if}}
+  </div>
+</section>

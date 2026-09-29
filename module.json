@@ -1,0 +1,53 @@
+{
+  "id": "crucible-worlds",
+  "title": "Crucible Worlds: Wounds & Armour",
+  "description": "Automates The Crucible Worlds homebrew rules for D&D 5e: ablated armour (critical hits and massive damage, shields first, magic armour recovery, repairs), shields stopping massive damage, the Shield Block reaction, Wounds and Injuries and Permanent Wounds with duplicate skipping, exhaustion at 0 HP, and a Wound Tracker on the character sheet (default dnd5e sheet and Tidy 5e).",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "Shrimp"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "5.0.0",
+          "verified": "5.0.4"
+        }
+      }
+    ],
+    "recommends": [
+      {
+        "id": "tidy5e-sheet",
+        "type": "module",
+        "reason": "Adds a Perils tab with the Wound Tracker to Tidy 5e character sheets."
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/crucible-worlds.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "socket": true,
+  "url": "https://github.com/Shrimp381/crucible-worlds",
+  "manifest": "https://raw.githubusercontent.com/Shrimp381/crucible-worlds/main/module.json",
+  "download": "https://github.com/Shrimp381/crucible-worlds/releases/latest/download/module.zip",
+  "readme": "https://github.com/Shrimp381/crucible-worlds/blob/main/README.md",
+  "bugs": "https://github.com/Shrimp381/crucible-worlds/issues"
+}

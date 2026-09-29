@@ -1,0 +1,119 @@
+/* Crucible Worlds — every rule is scoped under .cw-tracker, .cw-card or .cw-dialog. */
+
+.cw-tracker {
+  --cw-accent: #8f2d2d;
+  --cw-accent-soft: rgba(143, 45, 45, 0.12);
+  --cw-perm: #5b2a6b;
+  --cw-perm-soft: rgba(91, 42, 107, 0.14);
+  --cw-line: rgba(0, 0, 0, 0.15);
+  --cw-muted: rgba(0, 0, 0, 0.6);
+  --cw-ok: #3d6b3a;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--cw-line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.35);
+  font-size: var(--font-size-12, 12px);
+  line-height: 1.35;
+}
+.theme-dark .cw-tracker, .cw-tracker.theme-dark {
+  --cw-line: rgba(255, 255, 255, 0.15);
+  --cw-muted: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+}
+.cw-tracker.cw-tidy { margin: 12px; }
+
+.cw-tracker .cw-head { display: flex; align-items: center; gap: 8px; }
+.cw-tracker .cw-title {
+  flex: 1; min-width: 0; margin: 0; border: none; font-size: var(--font-size-13, 13px); font-weight: 700;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cw-tracker .cw-title i { color: var(--cw-accent); }
+.cw-tracker .cw-penalty {
+  display: inline-flex; align-items: baseline; gap: 4px; padding: 1px 8px; border-radius: 10px;
+  border: 1px solid var(--cw-line); color: var(--cw-muted);
+}
+.cw-tracker .cw-penalty.active { border-color: var(--cw-accent); color: var(--cw-accent); background: var(--cw-accent-soft); }
+.cw-tracker .cw-penalty-value { font-weight: 700; font-size: var(--font-size-14, 14px); }
+.cw-tracker .cw-head-controls { display: flex; gap: 2px; }
+
+.cw-tracker button.cw-icon {
+  width: 22px; height: 22px; min-height: 0; padding: 0; margin: 0; line-height: 1;
+  border: none; background: none; box-shadow: none; color: inherit; opacity: 0.7; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 12px;
+}
+.cw-tracker button.cw-icon:hover { opacity: 1; color: var(--cw-accent); }
+.cw-tracker button.cw-icon.danger:hover { color: #b00; }
+
+.cw-tracker .cw-pending {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;
+  margin: 6px 0 0; padding: 4px 8px; border-radius: 4px; background: var(--cw-perm-soft); border: 1px solid var(--cw-perm);
+}
+.cw-tracker .cw-pending button, .cw-tracker button.cw-small, .cw-tracker button.cw-block {
+  width: auto; min-height: 0; height: auto; padding: 2px 8px; margin: 0; font-size: var(--font-size-11, 11px); line-height: 1.5; cursor: pointer;
+}
+
+.cw-tracker .cw-wounds { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.cw-tracker .cw-wound {
+  display: flex; align-items: flex-start; gap: 6px; padding: 4px 6px; margin: 0;
+  border-left: 3px solid var(--cw-accent); border-radius: 3px; background: var(--cw-accent-soft);
+}
+.cw-tracker .cw-wound.permanent { border-left-color: var(--cw-perm); background: var(--cw-perm-soft); }
+.cw-tracker .cw-wound.suppressed { opacity: 0.6; }
+.cw-tracker .cw-wound-img { width: 22px; height: 22px; flex: none; border: none; margin-top: 1px; filter: drop-shadow(0 0 1px rgba(0,0,0,0.5)); }
+.cw-tracker .cw-wound-body { flex: 1; min-width: 0; cursor: pointer; }
+.cw-tracker .cw-wound-text {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
+.cw-tracker .cw-wound.expanded .cw-wound-text { display: block; -webkit-line-clamp: unset; }
+.cw-tracker .cw-wound-name { font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.cw-tracker .cw-instance { font-weight: 400; color: var(--cw-muted); }
+.cw-tracker .cw-wound-text, .cw-tracker .cw-wound-note { font-size: var(--font-size-11, 11px); color: var(--cw-muted); }
+.cw-tracker .cw-wound-note { font-style: italic; }
+.cw-tracker .cw-wound-controls { display: flex; flex: none; }
+
+.cw-tracker .cw-chip {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 0 5px; border-radius: 8px; line-height: 14px; border: 1px solid currentColor;
+}
+.cw-tracker .cw-chip.temp { color: var(--cw-accent); }
+.cw-tracker .cw-chip.perm { color: var(--cw-perm); }
+.cw-tracker .cw-chip.sup { color: var(--cw-ok); }
+.cw-tracker .cw-chip.broken { color: #b00; }
+.cw-tracker .cw-empty { margin: 4px 0 0; color: var(--cw-muted); font-style: italic; list-style: none; }
+
+.cw-tracker .cw-armour { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--cw-line); }
+.cw-tracker .cw-subtitle { margin: 0 0 4px; border: none; font-size: var(--font-size-12, 12px); font-weight: 700; display: flex; gap: 6px; align-items: center; }
+.cw-tracker .cw-exempt { margin: 0 0 4px; color: var(--cw-muted); font-style: italic; }
+.cw-tracker .cw-piece { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+.cw-tracker .cw-piece.broken .cw-piece-name { text-decoration: line-through; opacity: 0.7; }
+.cw-tracker .cw-piece-img { width: 24px; height: 24px; flex: none; border: none; }
+.cw-tracker .cw-piece-body { flex: 1; min-width: 0; }
+.cw-tracker .cw-piece-name { font-weight: 600; }
+.cw-tracker .cw-bonus { color: var(--cw-perm); font-weight: 700; }
+.cw-tracker .cw-pips { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
+.cw-tracker .cw-pip { width: 8px; height: 8px; border-radius: 2px; border: 1px solid var(--cw-muted); background: transparent; }
+.cw-tracker .cw-pip.on { background: var(--cw-ok); border-color: var(--cw-ok); }
+.cw-tracker .cw-ac { margin-left: 4px; font-size: var(--font-size-11, 11px); color: var(--cw-muted); }
+.cw-tracker .cw-rate { font-size: var(--font-size-10, 10px); color: var(--cw-perm); }
+.cw-tracker button.cw-block { display: block; width: 100%; margin-top: 6px; }
+.cw-tracker .hint { color: var(--cw-muted); font-size: var(--font-size-10, 10px); }
+
+/* Chat cards */
+.cw-card .cw-card-title { font-weight: 700; font-size: var(--font-size-14, 14px); display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+.cw-card .cw-card-title i { color: #8f2d2d; }
+.cw-card .cw-card-lines { margin: 0 0 4px; padding-left: 16px; }
+.cw-card .cw-card-lines li { margin: 2px 0; }
+.cw-card .cw-card-wound { margin-top: 6px; padding: 4px 8px; border-left: 3px solid #8f2d2d; background: rgba(143, 45, 45, 0.1); border-radius: 3px; }
+.cw-card .cw-card-wound.perm { border-left-color: #5b2a6b; background: rgba(91, 42, 107, 0.12); }
+.cw-card .cw-card-wound p { margin: 2px 0 0; }
+.cw-card .cw-card-button { margin-top: 6px; width: 100%; }
+
+/* Dialogs */
+.cw-dialog .cw-methods { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+.cw-dialog .cw-radio { display: flex; gap: 6px; align-items: flex-start; cursor: pointer; }
+.cw-dialog .cw-radio.disabled { opacity: 0.5; cursor: not-allowed; }
+.cw-dialog .cw-radio input { margin-top: 3px; flex: none; }
+.cw-dialog .cw-dc { font-size: 11px; padding: 0 5px; border-radius: 8px; border: 1px solid currentColor; }
+.cw-dialog .hint { font-size: 11px; opacity: 0.75; }
+.cw-dialog .cw-crit { color: #b00; font-weight: 700; }
