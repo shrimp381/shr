@@ -1,13 +1,13 @@
 /**
- * Crucible Worlds — Wounds & Armour (Foundry v13, dnd5e 5.x)
+ * Shrimp's Homebrew Rules (SHR) — Foundry v13, dnd5e 5.x
  *
  * Automates the Perils of Adventuring and Armour Changes chapters of
  * "The Crucible Worlds — Homebrew Rules":
  *   - Ablated Armour (crits, massive damage), shields first, magic armour recovery, repairs
  *   - Shields stopping massive damage, and the Shield Block reaction
- *   - Wounds and Injuries (2d6 minus wounds, duplicate skipping) and Permanent Wounds
+ *   - Wounds and Injuries (2d6 minus wounds, duplicate skipping), the NPC table, and Permanent Wounds
  *   - Exhaustion at 0 HP, Deep Wound death saves, wound treatment and rest handling
- *   - A Wound Tracker on the character sheet (default dnd5e sheet and Tidy 5e)
+ *   - A Wound Tracker on the character sheet (default dnd5e sheet, and Tidy 5e as a tab or pinned to the first tab)
  *
  * File layout:
  *   constants.js     rules data + pure table logic
@@ -45,10 +45,11 @@ import { bindChatCard, postCard } from "./chat.js";
 Hooks.once("init", () => {
   registerSettings();
 
-  // Rules data, editable by world scripts (e.g. CONFIG.CRUCIBLE.WOUNDS.concussion.repeatable = true).
-  CONFIG.CRUCIBLE = {
+  // Rules data, editable by world scripts (e.g. CONFIG.SHR.WOUNDS.concussion.repeatable = true).
+  CONFIG.SHR = {
     WOUNDS: foundry.utils.deepClone(WOUNDS),
-    TABLES, REPAIR, MENDING_LIMIT, MAGIC_RECOVERY, EXEMPT_AC_CALCS
+    TABLES: foundry.utils.deepClone(TABLES),
+    REPAIR, MENDING_LIMIT, MAGIC_RECOVERY, EXEMPT_AC_CALCS
   };
 
   // v13 user queries: Shield Block prompts on the player's client, midi-qol hit context to the GM.
@@ -67,13 +68,13 @@ Hooks.once("init", () => {
     treatWound, syncWoundEffects,
     // Armour
     ablate, repairItem, recoverMagic, advanceDays, activeShield,
-    // Shield Block (macro): CrucibleWorlds.shieldBlock(actor)
+    // Shield Block (macro): SHR.shieldBlock(actor)
     shieldBlock: actor => manualShieldBlock(actor ?? canvas.tokens?.controlled[0]?.actor ?? game.user.character),
     // Run the rules for a hit by hand: processHit(actor, {dealt, droppedToZero}, {crit, isAttack, types})
     processHit
   };
   game.modules.get(MODULE_ID).api = api;
-  globalThis.CrucibleWorlds = api;
+  globalThis.SHR = api;
 });
 
 /** Conditions the rules name that the system may not have (Dazed, Bleeding). */
@@ -109,7 +110,7 @@ Hooks.on("dnd5e.restCompleted", async (actor, result, config) => {
     const days = setting("longRestDays");
     if (days > 0) {
       const lines = await recoverMagic(actor, days);
-      if (lines.length) await postCard(actor, { title: game.i18n.localize("CW.Armour.RecoveryTitle"), icon: "fa-solid fa-wand-sparkles", lines });
+      if (lines.length) await postCard(actor, { title: game.i18n.localize("SHR.Armour.RecoveryTitle"), icon: "fa-solid fa-wand-sparkles", lines });
     }
   }
 });

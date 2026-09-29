@@ -6,7 +6,7 @@
  * 1. Prompt — when damage is applied through dnd5e's damage application, the shield's owner
  *    gets a Block / Take it dialog before HP changes (asked over a v13 user query if the
  *    owner is on another client). Disabled while midi-qol is active.
- * 2. After the fact — the tracker button / macro `CrucibleWorlds.shieldBlock(actor)` refunds
+ * 2. After the fact — the tracker button / macro `SHR.shieldBlock(actor)` refunds
  *    half of the last hit and ablates the shield.
  */
 import { MODULE_ID } from "./constants.js";
@@ -39,9 +39,9 @@ function decider(actor) {
  */
 export function blockDialog(data, timeout = 30) {
   const half = Math.floor(data.amount / 2);
-  const content = `<div class="cw-dialog">
+  const content = `<div class="shr-dialog">
     <p>${tf("ShieldBlock.Prompt", { name: esc(data.actorName), amount: data.amount, shield: esc(data.shieldName) })}</p>
-    ${data.crit ? `<p class="cw-crit">${t("ShieldBlock.Crit")}</p>` : ""}
+    ${data.crit ? `<p class="shr-crit">${t("ShieldBlock.Crit")}</p>` : ""}
     <p class="hint">${tf("ShieldBlock.Hint", { half })}</p>
   </div>`;
   return new Promise(resolve => {
@@ -94,7 +94,7 @@ export async function manualShieldBlock(actor) {
   await actor.update({
     "system.attributes.hp.value": Math.min(max, hp.value + refund),
     [`flags.${MODULE_ID}.lastHit.blocked`]: true
-  }, { cwInternal: true });
+  }, { shrInternal: true });
   const result = await ablate(actor, { shieldOnly: true });
   const lines = [tf("ShieldBlock.Refund", { amount: hit.amount, refund }), ablationLine(result, "block")];
   if (hit.triggered) lines.push(`<em>${t("ShieldBlock.AlreadyTriggered")}</em>`);

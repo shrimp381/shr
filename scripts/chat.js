@@ -9,7 +9,7 @@ const esc = s => foundry.utils.escapeHTML?.(String(s ?? "")) ?? String(s ?? "");
 export { esc };
 
 /**
- * Post a Crucible Worlds chat card.
+ * Post an SHR chat card.
  * @param {Actor} actor
  * @param {object} data
  * @param {string} data.title
@@ -22,10 +22,10 @@ export async function postCard(actor, { title, icon = "fa-solid fa-heart-crack",
   let rollHtml = "";
   for (const roll of rolls) rollHtml += await roll.render();
   const content = `
-    <div class="cw-card">
-      <header class="cw-card-title"><i class="${icon}"></i> ${title}</header>
-      ${lines.length ? `<ul class="cw-card-lines">${lines.map(l => `<li>${l}</li>`).join("")}</ul>` : ""}
-      ${rollHtml ? `<div class="cw-card-rolls">${rollHtml}</div>` : ""}
+    <div class="shr-card">
+      <header class="shr-card-title"><i class="${icon}"></i> ${title}</header>
+      ${lines.length ? `<ul class="shr-card-lines">${lines.map(l => `<li>${l}</li>`).join("")}</ul>` : ""}
+      ${rollHtml ? `<div class="shr-card-rolls">${rollHtml}</div>` : ""}
       ${body}
     </div>`;
   const data = {
@@ -46,14 +46,14 @@ export async function postCard(actor, { title, icon = "fa-solid fa-heart-crack",
 export function bindChatCard(message, html) {
   const root = html instanceof HTMLElement ? html : html?.[0];
   if (!root) return;
-  for (const button of root.querySelectorAll("[data-cw-chat]")) {
+  for (const button of root.querySelectorAll("[data-shr-chat]")) {
     button.addEventListener("click", async event => {
       event.preventDefault();
       const actor = await fromUuid(button.dataset.actorUuid);
       if (!actor?.isOwner) return ui.notifications.warn(t("Notify.NotOwner"));
       button.disabled = true;
       try {
-        if (button.dataset.cwChat === "permSave") await resolvePermanent(actor, button.dataset.pendingId);
+        if (button.dataset.shrChat === "permSave") await resolvePermanent(actor, button.dataset.pendingId);
       } catch (err) {
         console.error(`${MODULE_ID} |`, err);
         ui.notifications.error(err.message);

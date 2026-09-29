@@ -1,8 +1,8 @@
 {
-  "id": "crucible-worlds",
-  "title": "Crucible Worlds: Wounds & Armour",
-  "description": "Automates The Crucible Worlds homebrew rules for D&D 5e: ablated armour (critical hits and massive damage, shields first, magic armour recovery, repairs), shields stopping massive damage, the Shield Block reaction, Wounds and Injuries and Permanent Wounds with duplicate skipping, exhaustion at 0 HP, and a Wound Tracker on the character sheet (default dnd5e sheet and Tidy 5e).",
-  "version": "0.1.0",
+  "id": "shr",
+  "title": "Shrimp's Homebrew Rules",
+  "description": "Automates Shrimp's homebrew rules for D&D 5e (built from The Crucible Worlds rules): ablated armour (critical hits and massive damage, shields first, magic armour recovery, repairs), shields stopping massive damage, the Shield Block reaction, Wounds and Injuries for player characters and NPCs, Permanent Wounds with duplicate skipping, exhaustion at 0 HP, and a Wound Tracker on the character sheet (default dnd5e sheet, or on Tidy 5e as a Perils tab that can be pinned to the first tab).",
+  "version": "0.1.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -27,7 +27,7 @@
       {
         "id": "tidy5e-sheet",
         "type": "module",
-        "reason": "Adds a Perils tab with the Wound Tracker to Tidy 5e character sheets."
+        "reason": "Adds a Perils tab with the Wound Tracker to Tidy 5e character sheets, which can be pinned to the first tab."
       }
     ]
   },
@@ -35,7 +35,7 @@
     "scripts/main.js"
   ],
   "styles": [
-    "styles/crucible-worlds.css"
+    "styles/shr.css"
   ],
   "languages": [
     {
@@ -45,9 +45,9 @@
     }
   ],
   "socket": true,
-  "url": "https://github.com/Shrimp381/crucible-worlds",
-  "manifest": "https://raw.githubusercontent.com/Shrimp381/crucible-worlds/main/module.json",
-  "download": "https://github.com/Shrimp381/crucible-worlds/releases/latest/download/module.zip",
-  "readme": "https://github.com/Shrimp381/crucible-worlds/blob/main/README.md",
-  "bugs": "https://github.com/Shrimp381/crucible-worlds/issues"
+  "url": "https://github.com/Shrimp381/shr",
+  "manifest": "https://raw.githubusercontent.com/Shrimp381/shr/main/module.json",
+  "download": "https://github.com/Shrimp381/shr/releases/latest/download/module.zip",
+  "readme": "https://github.com/Shrimp381/shr/blob/main/README.md",
+  "bugs": "https://github.com/Shrimp381/shr/issues"
 }

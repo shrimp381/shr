@@ -1,59 +1,72 @@
 /**
- * Crucible Worlds — static rules data.
+ * Shrimp's Homebrew Rules — static rules data.
  *
  * Everything here comes from "The Crucible Worlds — Homebrew Rules" (V4):
  * Perils of Adventuring (Wounds and Injuries, Permanent Wounds, Dealing with Wounds)
- * and Armour Changes (Ablated Armour, Shields, Magic Armour, Repair and Maintenance).
+ * and Armour Changes (Ablated Armour, Shields, Magic Armour, Repair and Maintenance),
+ * plus the NPC Wounds and Injuries table.
  *
  * This file has no Foundry dependencies so the table logic can be unit tested.
- * The objects are exposed at runtime as CONFIG.CRUCIBLE so a world script can
+ * The objects are exposed at runtime as CONFIG.SHR so a world script can
  * tweak them (e.g. mark another wound as repeatable) without editing the module.
  */
 
-export const MODULE_ID = "crucible-worlds";
+export const MODULE_ID = "shr";
 
 /**
- * Wound definitions.
- * - table:      "main" (2d6 Wounds and Injuries) or "permanent" (1d6 Permanent Wound)
- * - result:     the table result that gives this wound
+ * Wound definitions. Which table a wound sits on, and at which result, is in TABLES below,
+ * so a wound that appears on more than one table (Concussion, Laceration, Sprained Wrist,
+ * Sprained Ankle) is defined once.
+ * - permanent:  belongs to the Permanent Wound table
  * - repeatable: the "*" in the rules. Repeatable wounds skip the duplicate check.
  * - statuses:   conditions the wound's Active Effect applies
  * - changes:    Active Effect changes (mode is a CONST.ACTIVE_EFFECT_MODES key)
  * - speed:      halves walking speed; a second instance of the same wound sets it to 0
  * - escalate:   extra effect from the second instance onward
  * - onGain:     one-off effect applied when the wound is gained
+ * - halveHp:    Internal Bleeding: halves hit point maximum
  */
 export const WOUNDS = {
-  // 2d6 — Wounds and Injuries. A result of 2 or less rolls on the permanent table.
-  internalBleeding: { table: "main", result: 3, repeatable: true, img: "icons/svg/blood.svg", halveHp: true },
-  concussion: { table: "main", result: 4, repeatable: false, img: "icons/svg/daze.svg", statuses: ["dazed"] },
-  laceration: { table: "main", result: 5, repeatable: false, img: "icons/svg/blood.svg", statuses: ["bleeding"] },
-  deepWound: { table: "main", result: 6, repeatable: true, img: "icons/svg/skull.svg" },
-  battered: { table: "main", result: 7, repeatable: true, img: "icons/svg/falling.svg", onGain: "exhaustion" },
-  sprainedWrist: { table: "main", result: 8, repeatable: true, img: "icons/svg/downgrade.svg" },
-  damagedEardrum: { table: "main", result: 9, repeatable: false, img: "icons/svg/deaf.svg", statuses: ["deafened"] },
+  // Player characters (2d6 Wounds and Injuries)
+  internalBleeding: { repeatable: true, img: "icons/svg/blood.svg", halveHp: true },
+  concussion: { repeatable: false, img: "icons/svg/daze.svg", statuses: ["dazed"] },
+  laceration: { repeatable: false, img: "icons/svg/blood.svg", statuses: ["bleeding"] },
+  deepWound: { repeatable: true, img: "icons/svg/skull.svg" },
+  battered: { repeatable: true, img: "icons/svg/falling.svg", onGain: "exhaustion" },
+  sprainedWrist: { repeatable: true, img: "icons/svg/downgrade.svg" },
+  damagedEardrum: { repeatable: false, img: "icons/svg/deaf.svg", statuses: ["deafened"] },
   systemShock: {
-    table: "main", result: 10, repeatable: false, img: "icons/svg/lightning.svg",
+    repeatable: false, img: "icons/svg/lightning.svg",
     changes: [{ key: "system.attributes.init.roll.mode", mode: "ADD", value: "-1" }]
   },
-  sprainedAnkle: { table: "main", result: 11, repeatable: true, img: "icons/svg/net.svg", speed: true },
-  closeCall: { table: "main", result: 12, repeatable: true, img: "icons/svg/heal.svg", onGain: "closeCall" },
+  sprainedAnkle: { repeatable: true, img: "icons/svg/net.svg", speed: true },
+  closeCall: { repeatable: true, img: "icons/svg/heal.svg", onGain: "closeCall" },
 
-  // 1d6 — Permanent Wound
-  fatalWound: { table: "permanent", result: 1, repeatable: false, img: "icons/svg/skull.svg", onGain: "fatal" },
-  lostArm: { table: "permanent", result: 2, repeatable: true, img: "icons/svg/bones.svg" },
-  lostLeg: { table: "permanent", result: 3, repeatable: true, img: "icons/svg/bones.svg", speed: true },
+  // NPCs (2d6 Wounds and Injuries (NPC)). The table doesn't mark repeatable wounds; Sprained
+  // Wrist and Sprained Ankle keep their player-table behaviour, and Impaired Vision repeats
+  // because its second instance makes the creature Blind.
+  collapsedLung: { repeatable: false, img: "icons/svg/hazard.svg" },
+  tornMuscle: { repeatable: false, img: "icons/svg/combat.svg" },
+  wornOut: { repeatable: false, img: "icons/svg/sleep.svg" },
+  impairedVision: { repeatable: true, img: "icons/svg/blind.svg", escalate: { statuses: ["blinded"] } },
+  desperatePanic: { repeatable: false, img: "icons/svg/terror.svg", statuses: ["frightened"] },
+  brutalBlow: { repeatable: false, img: "icons/svg/explosion.svg", onGain: "prone" },
+
+  // Permanent Wound (1d6)
+  fatalWound: { permanent: true, repeatable: false, img: "icons/svg/skull.svg", onGain: "fatal" },
+  lostArm: { permanent: true, repeatable: true, img: "icons/svg/bones.svg" },
+  lostLeg: { permanent: true, repeatable: true, img: "icons/svg/bones.svg", speed: true },
   lostEye: {
-    table: "permanent", result: 4, repeatable: true, img: "icons/svg/eye.svg",
+    permanent: true, repeatable: true, img: "icons/svg/eye.svg",
     changes: [
       { key: "system.skills.prc.roll.mode", mode: "ADD", value: "-1" },
       { key: "system.skills.inv.roll.mode", mode: "ADD", value: "-1" }
     ],
     escalate: { statuses: ["blinded"] }
   },
-  scarredLungs: { table: "permanent", result: 5, repeatable: false, img: "icons/svg/degen.svg" },
+  scarredLungs: { permanent: true, repeatable: false, img: "icons/svg/degen.svg" },
   hideousScar: {
-    table: "permanent", result: 6, repeatable: false, img: "icons/svg/terror.svg",
+    permanent: true, repeatable: false, img: "icons/svg/mystery-man.svg",
     changes: [
       { key: "system.skills.prf.roll.mode", mode: "ADD", value: "-1" },
       { key: "system.skills.per.roll.mode", mode: "ADD", value: "-1" }
@@ -61,15 +74,35 @@ export const WOUNDS = {
   }
 };
 
+/**
+ * Roll tables. `results` maps a table result to a wound key.
+ * A main or NPC result below `min` (2 or less) is a Permanent Wound.
+ */
 export const TABLES = {
-  main: { min: 3, max: 12, die: "2d6" },
-  permanent: { min: 1, max: 6, die: "1d6" }
+  main: {
+    die: "2d6", min: 3, max: 12,
+    results: {
+      3: "internalBleeding", 4: "concussion", 5: "laceration", 6: "deepWound", 7: "battered",
+      8: "sprainedWrist", 9: "damagedEardrum", 10: "systemShock", 11: "sprainedAnkle", 12: "closeCall"
+    }
+  },
+  npc: {
+    die: "2d6", min: 3, max: 12,
+    results: {
+      3: "collapsedLung", 4: "concussion", 5: "laceration", 6: "tornMuscle", 7: "wornOut",
+      8: "sprainedWrist", 9: "impairedVision", 10: "desperatePanic", 11: "sprainedAnkle", 12: "brutalBlow"
+    }
+  },
+  permanent: {
+    die: "1d6", min: 1, max: 6,
+    results: { 1: "fatalWound", 2: "lostArm", 3: "lostLeg", 4: "lostEye", 5: "scarredLungs", 6: "hideousScar" }
+  }
 };
 
 /** Conditions the module registers if the system doesn't already provide them. */
 export const EXTRA_STATUSES = [
-  { id: "dazed", name: "CW.Status.dazed", img: "icons/svg/daze.svg" },
-  { id: "bleeding", name: "CW.Status.bleeding", img: "icons/svg/blood.svg" }
+  { id: "dazed", name: "SHR.Status.dazed", img: "icons/svg/daze.svg" },
+  { id: "bleeding", name: "SHR.Status.bleeding", img: "icons/svg/blood.svg" }
 ];
 
 /** Armour repair costs and tools, by armour type. */
@@ -105,39 +138,31 @@ export const BODY_ARMOUR_TYPES = ["light", "medium", "heavy"];
 /*  Pure table logic                            */
 /* -------------------------------------------- */
 
-/** Map of result number -> wound key for one table. */
-export function tableIndex(table, wounds = WOUNDS) {
-  const index = {};
-  for (const [key, def] of Object.entries(wounds)) if (def.table === table) index[def.result] = key;
-  return index;
-}
-
 /**
  * Resolve a (modified) roll against a table, applying the duplicate rule:
  * "If a player rolls the same result as one they already have a wound for, they skip
  * this result and select the next lowest result they do not have as a wound.
  * Results with a * next to them can be taken more than once."
  *
- * @param {"main"|"permanent"} table
+ * @param {"main"|"npc"|"permanent"} table
  * @param {number} value       the modified roll (2d6 minus existing wounds, or 1d6)
- * @param {Set<string>} owned  wound keys the character already has
+ * @param {Set<string>} owned  wound keys the creature already has
  * @returns {{result:number, key:string|null, permanent:boolean, skipped:number[]}}
- *   On the main table, `permanent: true` (and key null) means "roll on the Permanent Wound table".
+ *   On the main and NPC tables, `permanent: true` (and key null) means "roll on the Permanent Wound table".
  */
-export function resolveResult(table, value, owned = new Set(), wounds = WOUNDS) {
-  const { min, max } = TABLES[table];
-  const index = tableIndex(table, wounds);
+export function resolveResult(table, value, owned = new Set(), wounds = WOUNDS, tables = TABLES) {
+  const { min, max, results } = tables[table];
   const skipped = [];
   let r = Math.min(Math.floor(value), max);
   while (r >= min) {
-    const key = index[r];
+    const key = results[r];
     if (key && (wounds[key].repeatable || !owned.has(key))) return { result: r, key, permanent: false, skipped };
     skipped.push(r);
     r--;
   }
-  if (table === "main") return { result: Math.min(r, 2), key: null, permanent: true, skipped };
+  if (table !== "permanent") return { result: Math.min(r, 2), key: null, permanent: true, skipped };
   // Permanent table floor: result 1.
-  return { result: min, key: index[min], permanent: false, skipped };
+  return { result: min, key: results[min], permanent: false, skipped };
 }
 
 /** How many existing instances of `key` precede the wound at `position` in the list. */

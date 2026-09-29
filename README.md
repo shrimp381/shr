@@ -1,10 +1,10 @@
-# Crucible Worlds: Wounds & Armour
+# Shrimp's Homebrew Rules (SHR)
 
-A Foundry VTT module that automates the **Perils of Adventuring** and **Armour Changes** rules from *The Crucible Worlds — Homebrew Rules* for D&D 5e.
+A Foundry VTT module that automates homebrew rules for D&D 5e. This release covers the **Perils of Adventuring** and **Armour Changes** chapters of *The Crucible Worlds — Homebrew Rules*, including the NPC wounds table.
 
 - **Foundry:** v13
 - **System:** dnd5e 5.x
-- **Sheets:** default dnd5e character sheet, and Tidy 5e Sheets (as a **Perils** tab)
+- **Sheets:** default dnd5e character sheet, and Tidy 5e Sheets (as a **Perils** tab, or pinned to the first tab)
 - **Damage:** dnd5e damage application; midi-qol supported (see below)
 
 ## Features
@@ -49,6 +49,27 @@ A Foundry VTT module that automates the **Perils of Adventuring** and **Armour C
 
 - **Exhaustion at 0 HP:** a character gains 1 level each time they drop to 0 HP.
 
+### NPC wounds and injuries
+Turn on **NPC wounds and injuries** in the module settings and NPCs roll on their own 2d6 table (the same duplicate rule applies) when they take massive damage and survive. An NPC at 0 HP is simply dead or defeated, so it doesn't roll. NPC wounds show as effects on the token and in chat.
+
+| 2d6 | NPC wound | Automation |
+|---|---|---|
+| 2 or less | Permanent Wound | see below |
+| 3 | Collapsed Lung | narrative (saves are the GM's call) |
+| 4 | Concussion | Dazed |
+| 5 | Laceration | Bleeding |
+| 6 | Torn Muscle | narrative |
+| 7 | Worn Out | narrative |
+| 8 | Sprained Wrist* | narrative |
+| 9 | Impaired Vision* | narrative; a second one gives Blinded |
+| 10 | Desperate Panic | Frightened |
+| 11 | Sprained Ankle* | speed halved; a second one sets it to 0 |
+| 12 | Brutal Blow | Prone (the extra damage die is the GM's to roll) |
+
+The table doesn't mark repeatable wounds. Sprained Wrist and Sprained Ankle stay repeatable as they are for players, and Impaired Vision is repeatable because its second instance blinds the creature. Change any of them under `CONFIG.SHR.WOUNDS`.
+
+**NPC Permanent Wounds:** the table says to reroll unless the NPC is significant. The **NPC permanent wounds** setting decides: ask the GM each time (default), always apply, or always reroll. A permanent wound on an NPC has no Constitution save; it rolls straight on the Permanent Wound table.
+
 ### Dealing with Wounds
 The **Treat** button on each temporary wound offers four options:
 - **Healer's kit:** Medicine DC 8 + character level. Success removes the wound.
@@ -69,34 +90,34 @@ On the default sheet, a panel sits in the sidebar under HP. It shows:
 - Treat, Subdue and Remove buttons, plus Add wound and Roll wound buttons
 - each armour piece's AC as pips, with repair buttons and the Shield Block button
 
-On Tidy 5e, the same panel appears as a **Perils** tab.
+On Tidy 5e, the same panel is a **Perils** tab. The **bookmark** in its header (the same icon Tidy uses to favourite an item) **pins the panel to the first tab** instead, at the bottom of that tab. The list above it (your favourites, weapons and abilities) gets shorter but keeps scrolling, and the panel scrolls on its own if it grows. While pinned, the Perils tab is hidden. Click the bookmark on the pinned panel to bring the tab back. This is a per-user preference, so each player chooses their own layout. It needs Tidy 5e's Quadrone sheet; the classic Tidy sheet always keeps the Perils tab.
 
 ## Settings
-All settings are world settings under **Configure Settings → Crucible Worlds**. They let you turn off or tune each rule: ablation, stat-block ablation, the shield's massive-damage mode, the Shield Block prompt (attacks, any damage, or off), Shield Block for NPCs and its timeout, magic armour recovery source and days per long rest, wounds, wounds for NPCs, whether permanent wounds count toward the penalty, exhaustion at 0 HP, long-rest Medicine checks, the potion prompt, and private chat cards.
+All settings are world settings under **Configure Settings → Shrimp's Homebrew Rules**. They let you turn off or tune each rule: ablation, stat-block ablation, the shield's massive-damage mode, the Shield Block prompt (attacks, any damage, or off), Shield Block for NPCs and its timeout, magic armour recovery source and days per long rest, wounds, NPC wounds and injuries, NPC permanent wounds, whether permanent wounds count toward the penalty, exhaustion at 0 HP, long-rest Medicine checks, the potion prompt, and private chat cards.
 
 ## Macros
 
 **Shield Block (after the fact)**
 ```js
-CrucibleWorlds.shieldBlock(); // selected token, or your assigned character
+SHR.shieldBlock(); // selected token, or your assigned character
 ```
 
 **Advance magic armour recovery (GM)**
 ```js
-CrucibleWorlds.advanceDays(1);
+SHR.advanceDays(1);
 ```
 
 **Roll a wound by hand**
 ```js
 const actor = canvas.tokens.controlled[0]?.actor;
-CrucibleWorlds.rollWound(actor, { reason: "manual", damage: 18 });
+SHR.rollWound(actor, { reason: "manual", damage: 18 });
 ```
 
 ## Customising the tables
-The rules data is in `CONFIG.CRUCIBLE`. You can change it from a world script or a macro that runs on `ready`, for example:
+The rules data is in `CONFIG.SHR`. You can change it from a world script or a macro that runs on `ready`, for example:
 ```js
-CONFIG.CRUCIBLE.WOUNDS.concussion.repeatable = true;   // allow Concussion more than once
-CONFIG.CRUCIBLE.MAGIC_RECOVERY = [0.5, 1, 2];          // AC/day by magic bonus
+CONFIG.SHR.WOUNDS.concussion.repeatable = true;   // allow Concussion more than once
+CONFIG.SHR.MAGIC_RECOVERY = [0.5, 1, 2];          // AC/day by magic bonus
 ```
 Wound definitions (table, result, repeatable, conditions, effect changes) are in `scripts/constants.js`.
 
@@ -104,10 +125,10 @@ Wound definitions (table, result, repeatable, conditions, effect changes) are in
 With midi-qol active, crits and damage types are read from the midi workflow. Everything else works the same way. The automatic Shield Block prompt is turned off because midi applies damage on its own; use the tracker button or the macro instead.
 
 ## API
-`game.modules.get("crucible-worlds").api` (also `globalThis.CrucibleWorlds`):
+`game.modules.get("shr").api` (also `globalThis.SHR`):
 `getWounds, woundCount, addWound, removeWound, setSuppressed, rollWound, rollPermanent, resolvePermanent, treatWound, syncWoundEffects, ablate, repairItem, recoverMagic, advanceDays, activeShield, shieldBlock, processHit`
 
 ## Data
-- Actor flags `crucible-worlds.wounds` (the wound list), `woundCount`, `pendingPermanent`, `lastHit`
-- Item flags `crucible-worlds.baseAC`, `broken`, `recovery`
-- Wound Active Effects carry `flags.crucible-worlds.woundId`
+- Actor flags `shr.wounds` (the wound list), `woundCount`, `pendingPermanent`, `lastHit`
+- Item flags `shr.baseAC`, `broken`, `recovery`
+- Wound Active Effects carry `flags.shr.woundId`

@@ -11,7 +11,7 @@ import {
 import { setting, t, tf } from "./settings.js";
 import { postCard, esc } from "./chat.js";
 
-const cfg = () => CONFIG.CRUCIBLE;
+const cfg = () => CONFIG.SHR;
 
 /* -------------------------------------------- */
 /*  Queries                                     */
@@ -89,7 +89,7 @@ export async function ablate(actor, { amount = 1, shieldOnly = false } = {}) {
     "system.armor.value": remaining,
     [`flags.${MODULE_ID}.baseAC`]: base,
     [`flags.${MODULE_ID}.broken`]: broken
-  }, { cwInternal: true });
+  }, { shrInternal: true });
   return { piece, name: piece.name, lost: current - remaining, remaining, base, broken };
 }
 
@@ -103,8 +103,8 @@ async function ablateFlat(actor, amount) {
     changes: [{ key: "system.attributes.ac.flat", mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: String(-lost) }],
     flags: { [MODULE_ID]: { flatAblation: lost } }
   };
-  if (existing) await existing.update(data, { cwInternal: true });
-  else await actor.createEmbeddedDocuments("ActiveEffect", [data], { cwInternal: true });
+  if (existing) await existing.update(data, { shrInternal: true });
+  else await actor.createEmbeddedDocuments("ActiveEffect", [data], { shrInternal: true });
   return { piece: null, name: t("Armour.StatBlock"), lost: amount, remaining: null, flat: lost };
 }
 
@@ -156,14 +156,14 @@ export async function repairItem(item, method, { pay = false } = {}) {
   if (pay && cost && actor) {
     const gp = Number(actor.system.currency?.gp ?? 0);
     if (gp < cost) return ui.notifications.warn(tf("Notify.NotEnoughGold", { cost }));
-    await actor.update({ "system.currency.gp": gp - cost }, { cwInternal: true });
+    await actor.update({ "system.currency.gp": gp - cost }, { shrInternal: true });
   }
 
   await item.update({
     "system.armor.value": baseAC(item),
     [`flags.${MODULE_ID}.broken`]: false,
     [`flags.${MODULE_ID}.recovery`]: 0
-  }, { cwInternal: true });
+  }, { shrInternal: true });
 
   if (actor) {
     const line = tf(`Armour.Repair.${method}`, { name: esc(item.name), ac: baseAC(item), cost, tools: info.tools });
@@ -193,7 +193,7 @@ export async function recoverMagic(actor, days) {
     }
     updates.push(update);
   }
-  if (updates.length) await actor.updateEmbeddedDocuments("Item", updates, { cwInternal: true });
+  if (updates.length) await actor.updateEmbeddedDocuments("Item", updates, { shrInternal: true });
   return lines;
 }
 

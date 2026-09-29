@@ -2,7 +2,7 @@
  * Wound Tracker UI: context preparation, sheet injection (default dnd5e sheet and
  * Tidy 5e), and control handling.
  *
- * Controls use data-cw-action (not data-action) so the sheet's own ApplicationV2
+ * Controls use data-shr-action (not data-action) so the sheet's own ApplicationV2
  * action dispatch never picks them up.
  */
 import { MODULE_ID } from "./constants.js";
@@ -53,12 +53,12 @@ function armourEntry(item) {
   };
 }
 
-export function trackerContext(actor, { editable = actor.isOwner, tidy = false } = {}) {
+export function trackerContext(actor, { editable = actor.isOwner, tidy = false, pinnable = false, pinned = false } = {}) {
   const wounds = getWounds(actor);
   const seen = {};
   const list = wounds.map(w => {
     seen[w.key] = (seen[w.key] ?? 0) + 1;
-    const def = CONFIG.CRUCIBLE.WOUNDS[w.key];
+    const def = CONFIG.SHR.WOUNDS[w.key];
     return {
       id: w.id,
       name: woundName(w),
@@ -82,6 +82,8 @@ export function trackerContext(actor, { editable = actor.isOwner, tidy = false }
     actorUuid: actor.uuid,
     editable,
     tidy,
+    pinnable,
+    pinned,
     isGM: game.user.isGM,
     wounds: list,
     temporary: list.filter(w => !w.permanent),
@@ -119,7 +121,7 @@ export async function injectTracker(app, html) {
   const root = html instanceof HTMLElement ? html : html?.[0] ?? app.element;
   if (!root) return;
   const markup = await foundry.applications.handlebars.renderTemplate(TEMPLATE, trackerContext(actor, { editable: app.isEditable }));
-  root.querySelectorAll(".cw-tracker").forEach(el => el.remove());
+  root.querySelectorAll(".shr-tracker").forEach(el => el.remove());
   const { node, where } = findAnchor(root);
   node.insertAdjacentHTML(where, markup);
   bindTracker(root, actor);
@@ -129,20 +131,74 @@ export async function injectTracker(app, html) {
 /*  Tidy 5e                                     */
 /* -------------------------------------------- */
 
+export const PERILS_TAB = `${MODULE_ID}-perils`;
+export const isPinned = () => !!game.settings.get(MODULE_ID, "perilsPinned");
+
+/** The first tab in a Quadrone sheet is the tab right after the sidebar container. */
+const FIRST_TAB = '.main-content > [data-tidy-sheet-part="sidebar-container"] + .tidy-tab, .main-content > .sidebar + .tidy-tab';
+
 export function registerTidy(api) {
-  api.registerCharacterTab(new api.models.HandlebarsTab({
-    title: "CW.Tracker.Tab",
-    tabId: `${MODULE_ID}-perils`,
+  const isPc = context => context.actor?.type === "character";
+  const perils = (options = {}) => new api.models.HandlebarsTab({
+    title: "SHR.Tracker.Tab",
+    tabId: PERILS_TAB,
     iconClass: "fa-solid fa-heart-crack",
     path: `/${TEMPLATE}`,
-    tabContentsClasses: ["cw-tidy-tab"],
-    enabled: context => context.actor?.type === "character",
-    getData: async context => trackerContext(context.actor, { editable: context.editable ?? context.actor?.isOwner, tidy: true }),
+    tabContentsClasses: ["shr-tidy-tab"],
+    enabled: context => isPc(context) && (options.hideWhenPinned ? !isPinned() : true),
+    getData: async context => trackerContext(context.actor, {
+      editable: context.editable ?? context.actor?.isOwner, tidy: true, pinnable: !!options.hideWhenPinned
+    }),
     onRender: params => {
       const actor = params.data?.actor ?? params.app?.actor ?? params.app?.document;
       if (actor) bindTracker(params.tabContentsElement, actor);
     }
-  }));
+  });
+
+  // Classic sheets can't host the pinned panel, so they always keep the Perils tab.
+  api.registerCharacterTab(perils(), { layout: "classic" });
+  api.registerCharacterTab(perils({ hideWhenPinned: true }), { layout: "quadrone" });
+
+  // Pinned: the same panel at the bottom of the first tab, under whatever list that tab shows.
+  api.registerCharacterContent(new api.models.HandlebarsContent({
+    path: `/${TEMPLATE}`,
+    injectParams: { selector: FIRST_TAB, position: "beforeend" },
+    enabled: context => isPc(context) && isPinned(),
+    getData: async context => trackerContext(context.actor, {
+      editable: context.editable ?? context.actor?.isOwner, tidy: true, pinnable: true, pinned: true
+    }),
+    onRender: params => {
+      const actor = params.app?.actor ?? params.app?.document;
+      const root = params.element?.querySelector(".shr-tracker.shr-pinned");
+      if (actor && root) bindTracker(root, actor);
+    }
+  }), { layout: "quadrone" });
+}
+
+/** Re-render every open player character sheet (used after the pin preference changes). */
+export function refreshSheets() {
+  for (const app of foundry.applications.instances.values()) {
+    if (app.document?.documentName === "Actor" && app.document.type === "character" && app.rendered) app.render();
+  }
+}
+
+/** Bookmark toggle: move the Perils panel between its own tab and the first tab of Tidy sheets. */
+export async function togglePinned(actor) {
+  const next = !isPinned();
+  await game.settings.set(MODULE_ID, "perilsPinned", next);
+  for (const app of foundry.applications.instances.values()) {
+    if (app.document?.documentName !== "Actor" || app.document.type !== "character" || !("currentTabId" in app)) continue;
+    if (next) {
+      // The Perils tab is about to disappear: land on the first tab, where the panel now lives.
+      if (app.currentTabId === PERILS_TAB) {
+        const first = app.element?.querySelector(FIRST_TAB)?.dataset.tabContentsFor;
+        if (first) app.currentTabId = first;
+      }
+    } else if (app.document === actor || app.document.id === actor.id) {
+      app.currentTabId = PERILS_TAB;
+    }
+  }
+  refreshSheets();
 }
 
 /* -------------------------------------------- */
@@ -150,16 +206,16 @@ export function registerTidy(api) {
 /* -------------------------------------------- */
 
 export function bindTracker(root, actor) {
-  const el = root?.classList?.contains("cw-tracker") ? root : root?.querySelector?.(".cw-tracker");
-  if (!el || el._cwBound) return;
-  el._cwBound = true;
+  const el = root?.classList?.contains("shr-tracker") ? root : root?.querySelector?.(".shr-tracker");
+  if (!el || el._shrBound) return;
+  el._shrBound = true;
   el.addEventListener("click", async event => {
-    const target = event.target.closest("[data-cw-action]");
+    const target = event.target.closest("[data-shr-action]");
     if (!target || !el.contains(target) || target.disabled) return;
     event.preventDefault();
     event.stopPropagation();
     try {
-      await handleAction(target.dataset.cwAction, target, actor);
+      await handleAction(target.dataset.shrAction, target, actor);
     } catch (err) {
       console.error(`${MODULE_ID} |`, err);
       ui.notifications.error(err.message);
@@ -171,7 +227,8 @@ async function handleAction(action, target, actor) {
   const woundId = target.closest("[data-wound-id]")?.dataset.woundId;
   const itemId = target.closest("[data-item-id]")?.dataset.itemId;
   switch (action) {
-    case "expand": return target.closest(".cw-wound")?.classList.toggle("expanded");
+    case "pin": return togglePinned(actor);
+    case "expand": return target.closest(".shr-wound")?.classList.toggle("expanded");
     case "add": return addWoundDialog(actor);
     case "roll": return rollWoundDialog(actor);
     case "remove": return removeWoundDialog(actor, woundId);
@@ -194,18 +251,22 @@ async function handleAction(action, target, actor) {
 /* -------------------------------------------- */
 
 function woundOptions() {
-  const groups = { main: [], permanent: [] };
-  for (const [key, def] of Object.entries(CONFIG.CRUCIBLE.WOUNDS)) {
-    groups[def.table]?.push({ key, result: def.result, label: `${def.result} · ${t(`Wound.${key}.Name`)}${def.repeatable ? "*" : ""}` });
-  }
-  const opts = list => list.sort((a, b) => a.result - b.result).map(o => `<option value="${o.key}">${esc(o.label)}</option>`).join("");
-  return `<optgroup label="${t("Dialog.MainTable")}">${opts(groups.main)}</optgroup>
-    <optgroup label="${t("Dialog.PermanentTable")}">${opts(groups.permanent)}</optgroup>
+  const seen = new Set();
+  const group = (table, label) => {
+    const items = [];
+    for (const [result, key] of Object.entries(CONFIG.SHR.TABLES[table].results)) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+      items.push(`<option value="${key}">${esc(`${result} · ${t(`Wound.${key}.Name`)}${CONFIG.SHR.WOUNDS[key].repeatable ? "*" : ""}`)}</option>`);
+    }
+    return items.length ? `<optgroup label="${label}">${items.join("")}</optgroup>` : "";
+  };
+  return `${group("main", t("Dialog.MainTable"))}${group("npc", t("Dialog.NpcTable"))}${group("permanent", t("Dialog.PermanentTable"))}
     <option value="custom">${t("Dialog.Custom")}</option>`;
 }
 
 async function addWoundDialog(actor) {
-  const content = `<div class="cw-dialog">
+  const content = `<div class="shr-dialog">
     <div class="form-group"><label>${t("Dialog.Wound")}</label><select name="key">${woundOptions()}</select></div>
     <div class="form-group"><label>${t("Dialog.CustomName")}</label><input type="text" name="name"></div>
     <div class="form-group"><label>${t("Dialog.CustomPermanent")}</label><input type="checkbox" name="permanent"></div>
@@ -225,7 +286,7 @@ async function addWoundDialog(actor) {
 }
 
 async function rollWoundDialog(actor) {
-  const content = `<div class="cw-dialog">
+  const content = `<div class="shr-dialog">
     <div class="form-group"><label>${t("Dialog.Reason")}</label><select name="reason">
       <option value="zero">${t("Roll.Reason.zero")}</option>
       <option value="massive">${t("Roll.Reason.massive")}</option>
@@ -265,12 +326,12 @@ async function treatDialog(actor, woundId) {
   if (!wound) return;
   const methods = ["kit", "grit", "potion", "longRest"].map((m, i) => {
     const dc = treatmentDC(actor, m);
-    return `<label class="cw-radio"><input type="radio" name="method" value="${m}" ${i === 0 ? "checked" : ""}>
-      <span><strong>${t(`Treat.Method.${m}`)}</strong>${dc ? ` <span class="cw-dc">DC ${dc}</span>` : ""}<br><span class="hint">${t(`Treat.Desc.${m}`)}</span></span></label>`;
+    return `<label class="shr-radio"><input type="radio" name="method" value="${m}" ${i === 0 ? "checked" : ""}>
+      <span><strong>${t(`Treat.Method.${m}`)}</strong>${dc ? ` <span class="shr-dc">DC ${dc}</span>` : ""}<br><span class="hint">${t(`Treat.Desc.${m}`)}</span></span></label>`;
   }).join("");
-  const content = `<div class="cw-dialog">
+  const content = `<div class="shr-dialog">
     <p><strong>${esc(woundName(wound))}</strong></p>
-    <div class="cw-methods">${methods}</div>
+    <div class="shr-methods">${methods}</div>
     <div class="form-group"><label>${t("Dialog.Healer")}</label><select name="healer">${healerOptions(actor)}</select></div>
   </div>`;
   const data = await DialogV2().prompt({
@@ -288,17 +349,17 @@ async function repairDialog(item) {
   const info = repairInfo(item);
   const shield = isShield(item);
   const option = (value, label, detail, disabled = false, checked = false) =>
-    `<label class="cw-radio ${disabled ? "disabled" : ""}"><input type="radio" name="method" value="${value}" ${disabled ? "disabled" : ""} ${checked ? "checked" : ""}>
+    `<label class="shr-radio ${disabled ? "disabled" : ""}"><input type="radio" name="method" value="${value}" ${disabled ? "disabled" : ""} ${checked ? "checked" : ""}>
       <span><strong>${label}</strong><br><span class="hint">${detail}</span></span></label>`;
   const methods = shield
     ? option("replace", t("Armour.Method.replace"), tf("Armour.MethodDesc.replace", { cost: info.price }), false, true)
     : option("craftsman", t("Armour.Method.craftsman"), tf("Armour.MethodDesc.craftsman", { cost: info.cost }), false, true)
       + option("party", t("Armour.Method.party"), tf("Armour.MethodDesc.party", { tools: info.tools }))
       + option("mending", t("Armour.Method.mending"), t(info.mending ? "Armour.MethodDesc.mending" : "Armour.MethodDesc.mendingNo"), !info.mending);
-  const content = `<div class="cw-dialog">
+  const content = `<div class="shr-dialog">
     <p>${tf("Armour.RepairIntro", { name: esc(item.name), cur: currentAC(item), base: baseAC(item) })}</p>
     ${shield ? `<p class="hint">${t("Armour.ShieldNote")}</p>` : ""}
-    <div class="cw-methods">${methods}</div>
+    <div class="shr-methods">${methods}</div>
     <div class="form-group"><label>${t("Armour.Pay")}</label><input type="checkbox" name="pay"></div>
   </div>`;
   const data = await DialogV2().prompt({
@@ -330,7 +391,7 @@ export async function potionPrompt(actor) {
   const options = wounds.map(w => `<option value="${w.id}">${esc(woundName(w))}</option>`).join("");
   const data = await DialogV2().prompt({
     window: { title: t("Dialog.PotionTitle"), icon: "fa-solid fa-flask" },
-    content: `<div class="cw-dialog"><p>${t("Dialog.PotionBody")}</p>
+    content: `<div class="shr-dialog"><p>${t("Dialog.PotionBody")}</p>
       <div class="form-group"><label>${t("Dialog.Wound")}</label><select name="wound"><option value="">${t("Dialog.None")}</option>${options}</select></div></div>`,
     ok: { label: t("Dialog.Subdue"), callback: (event, button) => readForm(button.form) },
     rejectClose: false

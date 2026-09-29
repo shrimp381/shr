@@ -136,7 +136,7 @@ export function onMidiDamage(token, data) {
 /* -------------------------------------------- */
 
 export function onPreUpdateActor(actor, changes, options) {
-  if (options.cwInternal) return;
+  if (options.shrInternal) return;
   const flat = foundry.utils.flattenObject(changes);
   if (!("system.attributes.hp.value" in flat) && !("system.attributes.hp.temp" in flat)) return;
   const hp = actor.system.attributes?.hp;
@@ -145,7 +145,7 @@ export function onPreUpdateActor(actor, changes, options) {
 }
 
 export function onUpdateActor(actor, changes, options, userId) {
-  if (userId !== game.user.id || options.cwInternal) return;
+  if (userId !== game.user.id || options.shrInternal) return;
   const prev = options[MODULE_ID]?.prev;
   if (!prev) return;
   const hp = actor.system.attributes.hp;
@@ -207,10 +207,13 @@ export async function processHit(actor, hit, ctx = {}) {
 
   if (shieldStops) lines.push(tf("Hit.ShieldStops", { shield: esc(shield.name) }));
 
-  // Perils of Adventuring (player characters, or NPCs if enabled).
+  // Perils of Adventuring. Player characters roll at 0 HP and on massive damage, and gain
+  // exhaustion / Deep Wound failures at 0 HP. NPCs (if enabled) roll on their own table for
+  // massive damage they survive; an NPC at 0 HP is dead or defeated, not wounded.
   let triggered = false;
   if (setting("wounds") && isWoundable(actor)) {
-    if (hit.droppedToZero) {
+    const isPc = actor.type === "character";
+    if (isPc && hit.droppedToZero) {
       if (setting("exhaustionAtZero")) {
         const level = await changeExhaustion(actor, 1);
         lines.push(tf("Hit.Exhaustion", { level }));
@@ -219,11 +222,14 @@ export async function processHit(actor, hit, ctx = {}) {
       const deep = getWounds(actor).filter(w => w.key === "deepWound" && !w.suppressed).length;
       if (deep) {
         const failures = Math.min(3, (Number(actor.system.attributes.death?.failure) || 0) + deep);
-        await actor.update({ "system.attributes.death.failure": failures }, { cwInternal: true });
+        await actor.update({ "system.attributes.death.failure": failures }, { shrInternal: true });
         lines.push(tf("Hit.DeepWound", { n: deep }));
       }
     }
-    const woundTrigger = hit.droppedToZero ? "zero" : (massive && !shieldStops ? "massive" : null);
+    const massiveWound = massive && !shieldStops;
+    const woundTrigger = isPc
+      ? (hit.droppedToZero ? "zero" : massiveWound ? "massive" : null)
+      : (massiveWound && !hit.droppedToZero && (hp.value ?? 0) > 0 ? "massive" : null);
     if (woundTrigger) {
       triggered = true;
       await recordHit(actor, amount, hadShield, ctx, triggered);

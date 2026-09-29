@@ -1,0 +1,140 @@
+/* SHR — every rule is scoped under .shr-tracker, .shr-card or .shr-dialog. */
+
+.shr-tracker {
+  --shr-accent: #8f2d2d;
+  --shr-accent-soft: rgba(143, 45, 45, 0.12);
+  --shr-perm: #5b2a6b;
+  --shr-perm-soft: rgba(91, 42, 107, 0.14);
+  --shr-line: rgba(0, 0, 0, 0.15);
+  --shr-muted: rgba(0, 0, 0, 0.6);
+  --shr-ok: #3d6b3a;
+  box-sizing: border-box;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--shr-line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.35);
+  font-size: var(--font-size-12, 12px);
+  line-height: 1.35;
+}
+.theme-dark .shr-tracker, .shr-tracker.theme-dark {
+  --shr-accent: #e07a7a;
+  --shr-accent-soft: rgba(224, 122, 122, 0.14);
+  --shr-perm: #c39be6;
+  --shr-perm-soft: rgba(195, 155, 230, 0.16);
+  --shr-line: rgba(255, 255, 255, 0.15);
+  --shr-muted: rgba(255, 255, 255, 0.6);
+  --shr-ok: #6fbf6a;
+  background: rgba(0, 0, 0, 0.25);
+}
+.shr-tracker.shr-tidy { margin: 12px; }
+
+.shr-tracker .shr-head { display: flex; align-items: center; gap: 8px; }
+.shr-tracker .shr-title {
+  flex: 1; min-width: 0; margin: 0; border: none; font-size: var(--font-size-13, 13px); font-weight: 700;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.shr-tracker .shr-title i { color: var(--shr-accent); }
+.shr-tracker .shr-penalty {
+  display: inline-flex; align-items: baseline; gap: 4px; padding: 1px 8px; border-radius: 10px;
+  border: 1px solid var(--shr-line); color: var(--shr-muted);
+}
+.shr-tracker .shr-penalty.active { border-color: var(--shr-accent); color: var(--shr-accent); background: var(--shr-accent-soft); }
+.shr-tracker .shr-penalty-value { font-weight: 700; font-size: var(--font-size-14, 14px); }
+.shr-tracker .shr-head-controls { display: flex; gap: 2px; }
+
+.shr-tracker button.shr-icon {
+  width: 22px; height: 22px; min-height: 0; padding: 0; margin: 0; line-height: 1;
+  border: none; background: none; box-shadow: none; color: inherit; opacity: 0.7; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 12px;
+}
+.shr-tracker button.shr-icon:hover { opacity: 1; color: var(--shr-accent); }
+.shr-tracker button.shr-icon.danger:hover { color: #b00; }
+
+.shr-tracker .shr-pending {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;
+  margin: 6px 0 0; padding: 4px 8px; border-radius: 4px; background: var(--shr-perm-soft); border: 1px solid var(--shr-perm);
+}
+.shr-tracker .shr-pending button, .shr-tracker button.shr-small, .shr-tracker button.shr-block {
+  width: auto; min-height: 0; height: auto; padding: 2px 8px; margin: 0; font-size: var(--font-size-11, 11px); line-height: 1.5; cursor: pointer;
+}
+
+.shr-tracker .shr-wounds { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.shr-tracker .shr-wound {
+  display: flex; align-items: flex-start; gap: 6px; padding: 4px 6px; margin: 0;
+  border-left: 3px solid var(--shr-accent); border-radius: 3px; background: var(--shr-accent-soft);
+}
+.shr-tracker .shr-wound.permanent { border-left-color: var(--shr-perm); background: var(--shr-perm-soft); }
+.shr-tracker .shr-wound.suppressed { opacity: 0.6; }
+.shr-tracker .shr-wound-img { width: 22px; height: 22px; flex: none; border: none; margin-top: 1px; filter: drop-shadow(0 0 1px rgba(0,0,0,0.5)); }
+.shr-tracker .shr-wound-body { flex: 1; min-width: 0; cursor: pointer; }
+.shr-tracker .shr-wound-text {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
+.shr-tracker .shr-wound.expanded .shr-wound-text { display: block; -webkit-line-clamp: unset; }
+.shr-tracker .shr-wound-name { font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.shr-tracker .shr-instance { font-weight: 400; color: var(--shr-muted); }
+.shr-tracker .shr-wound-text, .shr-tracker .shr-wound-note { font-size: var(--font-size-11, 11px); color: var(--shr-muted); }
+.shr-tracker .shr-wound-note { font-style: italic; }
+.shr-tracker .shr-wound-controls { display: flex; flex: none; }
+
+.shr-tracker .shr-chip {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 0 5px; border-radius: 8px; line-height: 14px; border: 1px solid currentColor;
+}
+.shr-tracker .shr-chip.temp { color: var(--shr-accent); }
+.shr-tracker .shr-chip.perm { color: var(--shr-perm); }
+.shr-tracker .shr-chip.sup { color: var(--shr-ok); }
+.shr-tracker .shr-chip.broken { color: #b00; }
+.shr-tracker .shr-empty { margin: 4px 0 0; color: var(--shr-muted); font-style: italic; list-style: none; }
+
+.shr-tracker .shr-armour { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--shr-line); }
+.shr-tracker .shr-subtitle { margin: 0 0 4px; border: none; font-size: var(--font-size-12, 12px); font-weight: 700; display: flex; gap: 6px; align-items: center; }
+.shr-tracker .shr-exempt { margin: 0 0 4px; color: var(--shr-muted); font-style: italic; }
+.shr-tracker .shr-piece { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+.shr-tracker .shr-piece.broken .shr-piece-name { text-decoration: line-through; opacity: 0.7; }
+.shr-tracker .shr-piece-img { width: 24px; height: 24px; flex: none; border: none; }
+.shr-tracker .shr-piece-body { flex: 1; min-width: 0; }
+.shr-tracker .shr-piece-name { font-weight: 600; }
+.shr-tracker .shr-bonus { color: var(--shr-perm); font-weight: 700; }
+.shr-tracker .shr-pips { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
+.shr-tracker .shr-pip { width: 8px; height: 8px; border-radius: 2px; border: 1px solid var(--shr-muted); background: transparent; }
+.shr-tracker .shr-pip.on { background: var(--shr-ok); border-color: var(--shr-ok); }
+.shr-tracker .shr-ac { margin-left: 4px; font-size: var(--font-size-11, 11px); color: var(--shr-muted); }
+.shr-tracker .shr-rate { font-size: var(--font-size-10, 10px); color: var(--shr-perm); }
+.shr-tracker button.shr-block { display: block; width: 100%; margin-top: 6px; }
+.shr-tracker .hint { color: var(--shr-muted); font-size: var(--font-size-10, 10px); }
+
+/* Chat cards */
+.shr-card .shr-card-title { font-weight: 700; font-size: var(--font-size-14, 14px); display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+.shr-card .shr-card-title i { color: #8f2d2d; }
+.shr-card .shr-card-lines { margin: 0 0 4px; padding-left: 16px; }
+.shr-card .shr-card-lines li { margin: 2px 0; }
+.shr-card .shr-card-wound { margin-top: 6px; padding: 4px 8px; border-left: 3px solid #8f2d2d; background: rgba(143, 45, 45, 0.1); border-radius: 3px; }
+.shr-card .shr-card-wound.perm { border-left-color: #5b2a6b; background: rgba(91, 42, 107, 0.12); }
+.shr-card .shr-card-wound p { margin: 2px 0 0; }
+.shr-card .shr-card-button { margin-top: 6px; width: 100%; }
+
+/* Dialogs */
+.shr-dialog .shr-methods { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+.shr-dialog .shr-radio { display: flex; gap: 6px; align-items: flex-start; cursor: pointer; }
+.shr-dialog .shr-radio.disabled { opacity: 0.5; cursor: not-allowed; }
+.shr-dialog .shr-radio input { margin-top: 3px; flex: none; }
+.shr-dialog .shr-dc { font-size: 11px; padding: 0 5px; border-radius: 8px; border: 1px solid currentColor; }
+.shr-dialog .hint { font-size: 11px; opacity: 0.75; }
+.shr-dialog .shr-crit { color: #b00; font-weight: 700; }
+
+/* Bookmark toggle (same icons as Tidy 5e's favourite bookmark) */
+.shr-tracker button.shr-pin { opacity: 0.6; }
+.shr-tracker button.shr-pin.on { opacity: 1; color: var(--t5e-warning-accent-color, #e0a030); }
+.shr-tracker button.shr-pin:hover { color: var(--t5e-warning-accent-color, #e0a030); }
+
+/* Pinned to the first tab of Tidy 5e Quadrone sheets: the list above shrinks and keeps scrolling,
+   the panel stays at the bottom with its own scroll. */
+.tidy-tab.active:has(> .shr-tracker.shr-pinned) { display: flex; flex-direction: column; overflow: auto; min-height: 0; }
+.tidy-tab.active:has(> .shr-tracker.shr-pinned) > .tab-content { flex: 1 1 0; min-height: 4rem; overflow: auto; }
+.tidy-tab > .shr-tracker.shr-pinned {
+  flex: 0 0 auto; max-height: 45%; overflow-y: auto; margin: 0.25rem 0.75rem 0.75rem;
+}
+.shr-tracker.shr-pinned .shr-wound-text { -webkit-line-clamp: 1; line-clamp: 1; }
+.shr-tracker.shr-pinned .shr-wound.expanded .shr-wound-text { -webkit-line-clamp: unset; line-clamp: unset; }

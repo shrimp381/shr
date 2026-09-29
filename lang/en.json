@@ -1,27 +1,99 @@
 {
-  "CW": {
+  "SHR": {
     "Status": {
       "dazed": "Dazed",
       "bleeding": "Bleeding"
     },
     "Wound": {
       "Custom": "Custom Wound",
-      "internalBleeding": { "Name": "Internal Bleeding", "Text": "You have suffered an internal haemorrhage and bruising. Your hit point maximum is halved." },
-      "concussion": { "Name": "Concussion", "Text": "You have received a minor concussion and struggle to focus on complicated tasks. You gain the dazed condition." },
-      "laceration": { "Name": "Laceration", "Text": "You have taken a deep injury which you are bleeding from. You gain the bleeding condition." },
-      "deepWound": { "Name": "Deep Wound", "Text": "You have taken a blow that under different circumstances would kill most humanoids. When you are reduced to 0 hit points, you start with an additional failed death saving throw." },
-      "battered": { "Name": "Battered", "Text": "Your muscles ache and you have had the wind knocked out of you. You gain a level of exhaustion." },
-      "sprainedWrist": { "Name": "Sprained Wrist", "Text": "You have badly sprained your wrist, unable to use it effectively. You are unable to hold objects in one of your hands and you cannot take actions that require that arm." },
-      "damagedEardrum": { "Name": "Damaged Eardrum", "Text": "You have suffered a blow to the head and your hearing has been impaired. You gain the deafened condition." },
-      "systemShock": { "Name": "System Shock", "Text": "You have suffered a severe nervous system shock. You have disadvantage on Dexterity checks to determine initiative." },
-      "sprainedAnkle": { "Name": "Sprained Ankle", "Text": "You have badly sprained your ankle, unable to use it effectively. Your speed on foot is halved and you cannot take the Dash action. If you receive this result a second time your speed on foot becomes 0." },
-      "closeCall": { "Name": "Close Call", "Text": "You narrowly miss an otherwise dangerous blow. Instead of being reduced to 0 hit points, you fall to 1 hit point instead, and become prone." },
-      "fatalWound": { "Name": "Fatal Wound", "Text": "Through an unrecoverable injury you have been fatally wounded. You are now dead." },
-      "lostArm": { "Name": "Lost Arm", "Text": "You have suffered a serious injury to your arm or have lost it entirely. You are unable to hold objects in one of your arms and you cannot take actions that require two arms." },
-      "lostLeg": { "Name": "Lost Leg", "Text": "You have suffered a serious injury to your leg or have lost it entirely. Your speed on foot is halved and you cannot take the Dash action. If you receive this result again your speed on foot becomes 0." },
-      "lostEye": { "Name": "Lost Eye", "Text": "You have lost the use of a good eye. You have disadvantage on Wisdom (Perception) and Intelligence (Investigation) checks that rely on sight. If you receive this result again, you gain the blinded condition." },
-      "scarredLungs": { "Name": "Scarred Lungs", "Text": "Undertaking vigorous activities causes you to break out in a coughing fit. If you take an action, you cannot take a bonus action until your next turn. If you take a bonus action you cannot take an action until your next turn." },
-      "hideousScar": { "Name": "Hideous Scar", "Text": "You have been horribly and visibly scarred. You have disadvantage on Charisma (Performance) and Charisma (Persuasion) checks. Additionally, indifferent NPCs may prefer not to converse with you." }
+      "internalBleeding": {
+        "Name": "Internal Bleeding",
+        "Text": "You have suffered an internal haemorrhage and bruising. Your hit point maximum is halved."
+      },
+      "concussion": {
+        "Name": "Concussion",
+        "Text": "You have received a minor concussion and struggle to focus on complicated tasks. You gain the dazed condition."
+      },
+      "laceration": {
+        "Name": "Laceration",
+        "Text": "You have taken a deep injury which you are bleeding from. You gain the bleeding condition."
+      },
+      "deepWound": {
+        "Name": "Deep Wound",
+        "Text": "You have taken a blow that under different circumstances would kill most humanoids. When you are reduced to 0 hit points, you start with an additional failed death saving throw."
+      },
+      "battered": {
+        "Name": "Battered",
+        "Text": "Your muscles ache and you have had the wind knocked out of you. You gain a level of exhaustion."
+      },
+      "sprainedWrist": {
+        "Name": "Sprained Wrist",
+        "Text": "You have badly sprained your wrist, unable to use it effectively. You are unable to hold objects in one of your hands and you cannot take actions that require that arm."
+      },
+      "damagedEardrum": {
+        "Name": "Damaged Eardrum",
+        "Text": "You have suffered a blow to the head and your hearing has been impaired. You gain the deafened condition."
+      },
+      "systemShock": {
+        "Name": "System Shock",
+        "Text": "You have suffered a severe nervous system shock. You have disadvantage on Dexterity checks to determine initiative."
+      },
+      "sprainedAnkle": {
+        "Name": "Sprained Ankle",
+        "Text": "You have badly sprained your ankle, unable to use it effectively. Your speed on foot is halved and you cannot take the Dash action. If you receive this result a second time your speed on foot becomes 0."
+      },
+      "closeCall": {
+        "Name": "Close Call",
+        "Text": "You narrowly miss an otherwise dangerous blow. Instead of being reduced to 0 hit points, you fall to 1 hit point instead, and become prone."
+      },
+      "fatalWound": {
+        "Name": "Fatal Wound",
+        "Text": "Through an unrecoverable injury you have been fatally wounded. You are now dead."
+      },
+      "lostArm": {
+        "Name": "Lost Arm",
+        "Text": "You have suffered a serious injury to your arm or have lost it entirely. You are unable to hold objects in one of your arms and you cannot take actions that require two arms."
+      },
+      "lostLeg": {
+        "Name": "Lost Leg",
+        "Text": "You have suffered a serious injury to your leg or have lost it entirely. Your speed on foot is halved and you cannot take the Dash action. If you receive this result again your speed on foot becomes 0."
+      },
+      "lostEye": {
+        "Name": "Lost Eye",
+        "Text": "You have lost the use of a good eye. You have disadvantage on Wisdom (Perception) and Intelligence (Investigation) checks that rely on sight. If you receive this result again, you gain the blinded condition."
+      },
+      "scarredLungs": {
+        "Name": "Scarred Lungs",
+        "Text": "Undertaking vigorous activities causes you to break out in a coughing fit. If you take an action, you cannot take a bonus action until your next turn. If you take a bonus action you cannot take an action until your next turn."
+      },
+      "hideousScar": {
+        "Name": "Hideous Scar",
+        "Text": "You have been horribly and visibly scarred. You have disadvantage on Charisma (Performance) and Charisma (Persuasion) checks. Additionally, indifferent NPCs may prefer not to converse with you."
+      },
+      "collapsedLung": {
+        "Name": "Collapsed Lung",
+        "Text": "The internal organs of the creature receive significant damage, or their otherwise integral systems begin shutting down. If the creature moves more than 10 feet on its turn, it must make a DC 10 Constitution saving throw or their movement is reduced to 0. Additionally, they can only speak in short, clipped sentences. If the creature tries to cast a spell with a verbal component, they must make a [DC 10 + spell level] Constitution saving throw or the spell fails."
+      },
+      "tornMuscle": {
+        "Name": "Torn Muscle",
+        "Text": "The creature's muscles rip or their form otherwise takes significant damage that impedes their ability to attack. If they have the 'Multiattack' feature, the number of attacks they can make is reduced to by half. If they do not have such a feature, they instead cannot take bonus actions."
+      },
+      "wornOut": {
+        "Name": "Worn Out",
+        "Text": "The creature's haggard breathing or deteriorating form betrays them. Their melee attacks that use strength or dexterity have their damage halved."
+      },
+      "impairedVision": {
+        "Name": "Impaired Vision",
+        "Text": "The creature has suffered a blow to the head impairing its vision, all ranged attacks are at Disadvantage. If they suffer the same injury again they are considered Blind."
+      },
+      "desperatePanic": {
+        "Name": "Desperate Panic",
+        "Text": "The severity of the wound causes a brief shock to the creature, causing their actions to become desperate. They receive the frightened condition. They may make a [DC10 + Attackers Prof] Wisdom saving throw at the end of their turns to end this condition."
+      },
+      "brutalBlow": {
+        "Name": "Brutal Blow",
+        "Text": "The Creature suffers a heavy blow that knocks them prone, they suffer an extra die of damage (without modifiers)."
+      }
     },
     "Tracker": {
       "Tab": "Perils",
@@ -43,7 +115,9 @@
       "NoWounds": "No wounds.",
       "Armour": "Armour",
       "NoArmour": "No armour or shield equipped.",
-      "ShieldBlock": "Shield Block last hit"
+      "ShieldBlock": "Shield Block last hit",
+      "Pin": "Pin to the first tab",
+      "Unpin": "Unpin: back to the Perils tab"
     },
     "Roll": {
       "Title": "{name} is wounded",
@@ -59,7 +133,11 @@
       "PermanentSave": "Constitution save (DC {dc})",
       "PermanentSaved": "Constitution save {total} vs DC {dc}: saved. No permanent wound.",
       "PermanentFailed": "Constitution save {total} vs DC {dc}: failed.",
-      "Permanent": "Permanent Wound table: 1d6 = <strong>{roll}</strong>"
+      "Permanent": "Permanent Wound table: 1d6 = <strong>{roll}</strong>",
+      "Reroll": "Reroll: 2d6 = {roll} &minus; {count} existing wound(s) = <strong>{value}</strong>",
+      "NpcRerolled": "Not a significant NPC: rerolling.",
+      "NpcRerollLimit": "Ten rerolls all gave a permanent wound: taking the best result left.",
+      "NpcPermanent": "Significant NPC: permanent wound (no save)."
     },
     "Hit": {
       "Title": "{name}: armour and injuries",
@@ -185,7 +263,12 @@
       "PotionTitle": "Potion: subdue an injury",
       "PotionBody": "A potion magically subdues one injury until a short rest.",
       "None": "None",
-      "Subdue": "Subdue"
+      "Subdue": "Subdue",
+      "NpcTable": "NPC Wounds and Injuries (2d6)",
+      "NpcPermanentTitle": "Permanent wound: NPC",
+      "NpcPermanentBody": "{name} rolled a Permanent Wound. Apply it only if this is a significant NPC; otherwise reroll.",
+      "NpcPermanentYes": "Significant: apply it",
+      "NpcPermanentNo": "Not significant: reroll"
     },
     "Notify": {
       "NotOwner": "You don't own that character.",
@@ -203,21 +286,82 @@
       "NeedName": "Give the custom wound a name."
     },
     "Settings": {
-      "ablation": { "Name": "Ablated Armour", "Hint": "Critical hits and massive damage from attacks take 1 AC off the target's shield or armour. Natural armour, Unarmoured Defence and psychic damage are exempt." },
-      "npcFlatAblation": { "Name": "Ablate stat-block AC", "Hint": "NPCs with a flat AC and no armour items get a stacking -1 AC effect instead." },
-      "shieldMassive": { "Name": "Shields vs massive damage", "Hint": "What an equipped shield does against massive damage.", "Negate": "Stops it: no wound roll, no ablation", "Absorb": "Stops the wound roll; the shield loses 1 AC", "Off": "No protection" },
-      "shieldBlock": { "Name": "Shield Block prompt", "Hint": "Offer the Shield Block reaction before damage is applied (not with midi-qol; use the tracker button or macro).", "Attack": "When hit by an attack", "Always": "On any damage", "Off": "Off (tracker button / macro only)" },
-      "shieldBlockNpc": { "Name": "Shield Block for NPCs", "Hint": "Also prompt the GM for NPCs with shields." },
-      "shieldBlockTimeout": { "Name": "Shield Block timeout (seconds)", "Hint": "How long to wait for an answer before the damage goes through unblocked." },
-      "magicRecovery": { "Name": "Magic armour recovery", "Hint": "When magic armour regains AC.", "LongRest": "On a long rest", "WorldTime": "As world time passes", "Manual": "Manual (CrucibleWorlds.advanceDays)" },
-      "longRestDays": { "Name": "Days per long rest", "Hint": "How many days of magic armour recovery a long rest counts as (the setting's long rest is 36 hours)." },
-      "wounds": { "Name": "Wounds and Injuries", "Hint": "Roll on the wound table when a character drops to 0 HP or takes more than half their maximum HP in one hit." },
-      "woundsNpc": { "Name": "Wounds for NPCs", "Hint": "Also apply wounds, exhaustion and Deep Wound to NPCs." },
-      "countPermanent": { "Name": "Permanent wounds count", "Hint": "Include permanent wounds in the number subtracted from the 2d6 roll." },
-      "exhaustionAtZero": { "Name": "Exhaustion at 0 HP", "Hint": "Each time a character is reduced to 0 hit points they gain 1 level of exhaustion." },
-      "longRestTreatment": { "Name": "Long rest Medicine checks", "Hint": "At a long rest, roll a DC 10 Medicine check for each temporary wound; successes remove it." },
-      "potionPrompt": { "Name": "Potions subdue injuries", "Hint": "When a wounded character drinks a potion, offer to subdue one injury until a short rest." },
-      "whisperGM": { "Name": "Private chat cards", "Hint": "Whisper wound and armour cards to the GM and the character's owners." }
+      "ablation": {
+        "Name": "Ablated Armour",
+        "Hint": "Critical hits and massive damage from attacks take 1 AC off the target's shield or armour. Natural armour, Unarmoured Defence and psychic damage are exempt."
+      },
+      "npcFlatAblation": {
+        "Name": "Ablate stat-block AC",
+        "Hint": "NPCs with a flat AC and no armour items get a stacking -1 AC effect instead."
+      },
+      "shieldMassive": {
+        "Name": "Shields vs massive damage",
+        "Hint": "What an equipped shield does against massive damage.",
+        "Negate": "Stops it: no wound roll, no ablation",
+        "Absorb": "Stops the wound roll; the shield loses 1 AC",
+        "Off": "No protection"
+      },
+      "shieldBlock": {
+        "Name": "Shield Block prompt",
+        "Hint": "Offer the Shield Block reaction before damage is applied (not with midi-qol; use the tracker button or macro).",
+        "Attack": "When hit by an attack",
+        "Always": "On any damage",
+        "Off": "Off (tracker button / macro only)"
+      },
+      "shieldBlockNpc": {
+        "Name": "Shield Block for NPCs",
+        "Hint": "Also prompt the GM for NPCs with shields."
+      },
+      "shieldBlockTimeout": {
+        "Name": "Shield Block timeout (seconds)",
+        "Hint": "How long to wait for an answer before the damage goes through unblocked."
+      },
+      "magicRecovery": {
+        "Name": "Magic armour recovery",
+        "Hint": "When magic armour regains AC.",
+        "LongRest": "On a long rest",
+        "WorldTime": "As world time passes",
+        "Manual": "Manual (SHR.advanceDays)"
+      },
+      "longRestDays": {
+        "Name": "Days per long rest",
+        "Hint": "How many days of magic armour recovery a long rest counts as (the setting's long rest is 36 hours)."
+      },
+      "wounds": {
+        "Name": "Wounds and Injuries",
+        "Hint": "Roll on the wound table when a character drops to 0 HP or takes more than half their maximum HP in one hit."
+      },
+      "woundsNpc": {
+        "Name": "NPC wounds and injuries",
+        "Hint": "NPCs roll on the NPC Wounds & Injuries table when they take massive damage and survive (an NPC at 0 HP is simply dead or defeated). Wounds show as effects on the token and in chat."
+      },
+      "countPermanent": {
+        "Name": "Permanent wounds count",
+        "Hint": "Include permanent wounds in the number subtracted from the 2d6 roll."
+      },
+      "exhaustionAtZero": {
+        "Name": "Exhaustion at 0 HP",
+        "Hint": "Each time a character is reduced to 0 hit points they gain 1 level of exhaustion."
+      },
+      "longRestTreatment": {
+        "Name": "Long rest Medicine checks",
+        "Hint": "At a long rest, roll a DC 10 Medicine check for each temporary wound; successes remove it."
+      },
+      "potionPrompt": {
+        "Name": "Potions subdue injuries",
+        "Hint": "When a wounded character drinks a potion, offer to subdue one injury until a short rest."
+      },
+      "whisperGM": {
+        "Name": "Private chat cards",
+        "Hint": "Whisper wound and armour cards to the GM and the character's owners."
+      },
+      "npcPermanent": {
+        "Name": "NPC permanent wounds",
+        "Hint": "What happens when an NPC rolls a Permanent Wound (2 or less). The table says to reroll unless it is a significant NPC.",
+        "Ask": "Ask the GM each time",
+        "Always": "Always apply it",
+        "Reroll": "Always reroll"
+      }
     }
   }
 }
