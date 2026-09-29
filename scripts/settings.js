@@ -3,6 +3,15 @@ import { makeTablesMenu } from "./tables.js";
 
 const refreshVeteran = () => game.modules.get(MODULE_ID)?.api?.veteran?.refresh?.();
 
+/** The system's exhaustion penalty to d20 tests per level (2024 rules: 2). The homebrew uses 1. */
+export function applyExhaustionPenalty() {
+  const reduction = globalThis.CONFIG?.DND5E?.conditionTypes?.exhaustion?.reduction;
+  if (!reduction) return;
+  let value = 1;
+  try { value = Number(game.settings.get(MODULE_ID, "exhaustionPenalty")); } catch (err) { /* not registered yet */ }
+  if (Number.isFinite(value)) reduction.rolls = value;
+}
+
 export const t = key => game.i18n.localize(`SHR.${key}`);
 export const tf = (key, data) => game.i18n.format(`SHR.${key}`, data);
 export const setting = key => game.settings.get(MODULE_ID, key);
@@ -40,6 +49,7 @@ export function registerSettings() {
   });
   reg("permanentSave", { type: Boolean, default: false });
   reg("countPermanent", { type: Boolean, default: true });
+  reg("exhaustionPenalty", { type: Number, default: 1, range: { min: 0, max: 2, step: 1 }, onChange: () => applyExhaustionPenalty() });
   reg("exhaustionAtZero", { type: Boolean, default: true });
   reg("longRestTreatment", { type: Boolean, default: true });
   reg("potionPrompt", { type: Boolean, default: true });

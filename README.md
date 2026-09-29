@@ -97,9 +97,12 @@ With **At level cap** switched on, every level a character gains beyond the leve
 - max HP doesn't grow (the Hit Points advancement of veteran levels is ignored),
 - spell slots and pact slots stop progressing, and cantrips stop scaling,
 - the Hit Dice of veteran levels are **Veteran Dice**, shown separately in the Wound Tracker (Hit Dice x/y, Veteran Dice a/b).
-Veteran levels are recorded when a class levels up past the cap, or when the GM switches the rule on for characters already past it. Not automated: Fighter Extra Attack (2)/(3) and the level 8/10 ASIs/feats; handle them by not granting those advancements. Veteran Dice can be spent on short rest healing and Overcharging; dnd5e's short rest dialog still lists them with the normal Hit Dice.
+Veteran levels are recorded when a class levels up past the cap, or when the GM switches the rule on for characters already past it. Spell choices at level-up work as normal (the level's spells can be chosen even though no slots come with them). Overcharging is limited to the highest spell level the character's levels would normally let them cast. Not automated: Fighter Extra Attack (2)/(3) and the level 8/10 ASIs/feats; handle them by not granting those advancements. Veteran Dice can be spent on short rest healing and Overcharging; dnd5e's short rest dialog still lists them with the normal Hit Dice.
 
 Both features have a master switch in the SHR settings (**Overcharging spells** and **Veteran Levels**). Switching one off removes it completely.
+
+### Exhaustion
+Each level of exhaustion gives -1 to d20 Tests (dnd5e 5.x's own rule is -2 per level). Change it with the **Exhaustion penalty per level** setting; it edits the system's exhaustion setting on load, and the system does the rest.
 
 ### Wound Tracker
 On the default sheet, a panel sits in the sidebar under HP. It shows:
@@ -122,7 +125,7 @@ The three tables (**Wounds & Injuries**, **Wounds & Injuries (NPC)**, **Permanen
 A wound keeps the name, text and automation it was gained with, so editing a table doesn't change wounds already on a sheet.
 
 ## Settings
-All settings are world settings under **Configure Settings → Shrimp's Homebrew Rules**. They let you turn off or tune each rule: ablation, stat-block ablation, the shield's massive-damage mode, the Shield Block prompt (attacks, any damage, or off), Shield Block for NPCs and its timeout, magic armour recovery source and days per long rest, wounds, NPC wounds and injuries, NPC permanent wounds, the optional Constitution save before a Permanent Wound, whether permanent wounds count toward the penalty, exhaustion at 0 HP, long-rest Medicine checks, the potion prompt, and private chat cards.
+All settings are world settings under **Configure Settings → Shrimp's Homebrew Rules**. They let you turn off or tune each rule: ablation, stat-block ablation, the shield's massive-damage mode, the Shield Block prompt (attacks, any damage, or off), Shield Block for NPCs and its timeout, magic armour recovery source and days per long rest, wounds, NPC wounds and injuries, NPC permanent wounds, the optional Constitution save before a Permanent Wound, whether permanent wounds count toward the penalty, exhaustion penalty per level (1 by default), exhaustion at 0 HP, long-rest Medicine checks, the potion prompt, and private chat cards.
 
 ## Macros
 

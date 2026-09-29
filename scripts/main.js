@@ -22,7 +22,7 @@
 import {
   MODULE_ID, WOUNDS, TABLES, REPAIR, MENDING_LIMIT, MAGIC_RECOVERY, EXEMPT_AC_CALCS, EXTRA_STATUSES
 } from "./constants.js";
-import { registerSettings, setting } from "./settings.js";
+import { registerSettings, setting, applyExhaustionPenalty } from "./settings.js";
 import {
   trackDamageClicks, onCalculateDamage, onPreApplyDamage, onPreUpdateActor, onUpdateActor, onMidiDamage,
   storeContext, processHit, CONTEXT_QUERY
@@ -101,6 +101,7 @@ Hooks.once("init", () => {
 
 /** Conditions the rules name that the system may not have (Dazed, Bleeding). */
 Hooks.once("setup", () => {
+  applyExhaustionPenalty();
   for (const status of EXTRA_STATUSES) {
     if (!CONFIG.statusEffects.some(s => s.id === status.id)) CONFIG.statusEffects.push({ ...status });
   }

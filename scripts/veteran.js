@@ -35,7 +35,11 @@ export const totalLevel = actor => classItems(actor).reduce((s, c) => s + (Numbe
 
 /** Veteran levels a class holds (0 while the rule is off). */
 export function veteranOf(cls) {
-  return veteranActive() ? Math.max(0, Math.floor(Number(cls?.getFlag?.(MODULE_ID, "veteran"))) || 0) : 0;
+  if (!veteranActive()) return 0;
+  const flag = Math.max(0, Math.floor(Number(cls?.getFlag?.(MODULE_ID, "veteran"))) || 0);
+  if (!flag) return 0;
+  // A stale record can never exceed the levels the character actually has past the cap.
+  return Math.min(flag, Number(cls.system?.levels) || 0, Math.max(0, totalLevel(cls.actor) - levelCap()));
 }
 
 export const veteranTotal = actor => (actor?.type === "character" ? classItems(actor).reduce((s, c) => s + veteranOf(c), 0) : 0);
@@ -113,7 +117,7 @@ export function onPreUpdateClass(item, changes) {
   const current = Number(item.getFlag(MODULE_ID, "veteran")) || 0;
   let value = current;
   if (next > prev) value = current + veteranGain(totalLevel(actor), next - prev, levelCap());
-  else if (next < prev) value = Math.min(current, next);
+  else if (next < prev) value = Math.max(0, Math.min(current - (prev - next), next));
   if (value !== current) foundry.utils.setProperty(changes, `flags.${MODULE_ID}.veteran`, value);
 }
 
@@ -145,7 +149,9 @@ const veteranOfActor = actor => (actor ? veteranTotal(actor) : 0);
  * Set from the class's own levels each time, so it can't stack.
  */
 function clampProgression(progression, actor, cls, spellcasting) {
-  if (!veteranActive() || !spellcasting) return;
+  // No actor: the system is asking what a class could offer (e.g. the spell choices at level-up). Answer normally,
+  // so spells can be chosen as usual even though no slots come with them.
+  if (!veteranActive() || !spellcasting || !actor) return;
   const klass = cls?.type === "subclass" ? cls.class : cls;
   const v = veteranOf(klass);
   if (!v) return;
@@ -185,10 +191,11 @@ export function installPatches() {
     const proto = sys.documents.advancement.HitPointsAdvancement.prototype;
     const total = proto.getAdjustedTotal;
     proto.getAdjustedTotal = function (mod) {
-      if (!veteranActive() || !this.item) return total.call(this, mod);
-      const others = classItems(this.item.actor).filter(c => c.id !== this.item.id).reduce((n, c) => n + (Number(c.system?.levels) || 0), 0);
-      const keep = Math.max(0, levelCap() - others);
-      if (keep >= (Number(this.item.system.levels) || 0)) return total.call(this, mod);
+      // Each class drops its own veteran levels (recorded per class), so multiclass characters keep the
+      // hit points of every class's levels up to the cap.
+      const v = veteranOf(this.item);
+      if (!v) return total.call(this, mod);
+      const keep = Math.max(0, (Number(this.item.system.levels) || 0) - v);
       return hpWithoutVeteran(Object.keys(this.value ?? {}).map(Number), l => this.valueForLevel(l), mod, keep);
     };
 

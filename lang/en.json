@@ -299,6 +299,10 @@
       "levelCap": {
         "Name": "Level cap",
         "Hint": "The level after which further levels are Veteran Levels."
+      },
+      "exhaustionPenalty": {
+        "Name": "Exhaustion penalty per level",
+        "Hint": "Penalty to d20 Tests for each level of exhaustion. The system's default is 2; the homebrew rules use 1."
       }
     },
     "Tables": {
@@ -340,8 +344,8 @@
     "Overcharge": {
       "Title": "Overcharge (SHR)",
       "Use": "Overcharge this spell (spend Hit Dice instead of a slot)",
-      "HintBase": "Spend Hit Dice equal to the spell level, then make a spell check (DC 10 + level). On a failure the spell fails and you take that much Force damage.",
-      "HintCap": "1st-3rd level: spend Hit Dice equal to the level. 4th level and up: expend a lower slot and a Hit Die for each level below the spell.",
+      "HintBase": "Spend Hit Dice equal to the spell level, then make a spell check (DC 10 + level). On a failure the spell fails and you take that much Force damage. You can only overcharge up to the highest spell level your levels would normally let you cast.",
+      "HintCap": "1st-3rd level: spend Hit Dice equal to the level. 4th level and up: expend a lower slot and a Hit Die for each level below the spell. You can only overcharge up to the highest spell level your levels would normally let you cast.",
       "Level": "Cast at level",
       "Slot": "Slot to expend",
       "SlotOption": "Level {level} slot ({n} left){pact}",
@@ -355,7 +359,8 @@
       "Invalid": {
         "level": "Choose a level at or above the spell's level.",
         "slot": "Choose a slot to expend.",
-        "noNeed": "That slot is high enough to cast the spell normally."
+        "noNeed": "That slot is high enough to cast the spell normally.",
+        "tooHigh": "You can't cast spells above level {max}."
       },
       "CardTitle": "{spell} overcharged",
       "CardFailed": "{spell} overcharge failed",

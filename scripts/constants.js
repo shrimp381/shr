@@ -338,3 +338,22 @@ export function splitHitDice({ levels, spent, veteran }) {
 
 /** Proficiency bonus for a level (same table as the system). */
 export const proficiencyForLevel = level => Math.floor((level + 7) / 4);
+
+/**
+ * Highest spell level a character could cast by the normal progression for their class levels
+ * (the level cap doesn't matter here: this is what the character "knows" how to cast).
+ * @param {Array<{levels:number, progression:string}>} classes  progression: full, half, third, artificer, pact or none
+ * @returns {number} 0 if the character can't cast spells
+ */
+export function maxSpellLevel(classes) {
+  const casters = classes.filter(c => ["full", "half", "third", "artificer"].includes(c.progression) && c.levels > 0);
+  const single = casters.length === 1;
+  let caster = 0;
+  for (const c of casters) {
+    const div = { full: 1, half: 2, third: 3, artificer: 2 }[c.progression];
+    caster += c.progression === "artificer" || single ? Math.ceil(c.levels / div) : Math.floor(c.levels / div);
+  }
+  let max = caster > 0 ? Math.min(MAX_SPELL_LEVEL, Math.ceil(caster / 2)) : 0;
+  for (const c of classes) if (c.progression === "pact" && c.levels > 0) max = Math.max(max, Math.min(5, Math.ceil(c.levels / 2)));
+  return max;
+}

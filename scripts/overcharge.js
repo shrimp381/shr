@@ -10,7 +10,7 @@
  * The option appears in the spell's usage dialog. Choosing it cancels the normal consumption, pays the cost and,
  * if the spell goes off, casts it at the chosen level without spending a slot.
  */
-import { MODULE_ID, MAX_SPELL_LEVEL, overchargePlan, usesCapRules } from "./constants.js";
+import { MODULE_ID, MAX_SPELL_LEVEL, overchargePlan, usesCapRules, maxSpellLevel } from "./constants.js";
 import { setting, t, tf } from "./settings.js";
 import { postCard, esc } from "./chat.js";
 import { levelCap, totalLevel, veteranActive, hitDiceAvailable, spendHitDice } from "./veteran.js";
@@ -35,6 +35,19 @@ export function availableSlots(actor) {
     out.push({ key: "pact", level: veteranActive() || capRules(actor) ? Math.min(3, Number(pact.level) || 3) : Number(pact.level) || 1, value: Number(pact.value), pact: true });
   }
   return out;
+}
+
+/** The highest spell level this character could cast by the normal progression (Overcharge can't go past it). */
+export function castableMax(actor) {
+  const classes = actor.items.filter(i => i.type === "class").map(cls => {
+    let progression = cls.system?.spellcasting?.progression ?? "none";
+    if (progression === "none") {
+      const sub = actor.items.find(i => i.type === "subclass" && i.system?.classIdentifier === cls.system?.identifier);
+      progression = sub?.system?.spellcasting?.progression ?? "none";
+    }
+    return { levels: Number(cls.system?.levels) || 0, progression };
+  });
+  return maxSpellLevel(classes);
 }
 
 /** Only leveled spells cast by player characters can be overcharged. */
@@ -69,11 +82,12 @@ export function injectDialog(app, html) {
   const base = Number(activity.item.system.level) || 1;
   app.config ??= {};
   const state = app.config.shr ??= {};
-  state.level = Math.min(MAX_SPELL_LEVEL, Math.max(base, Number(state.level) || base));
+  state.level = Math.min(Math.max(base, castableMax(actor)), Math.max(base, Number(state.level) || base));
   const slots = availableSlots(actor);
 
   const levels = [];
-  for (let l = base; l <= MAX_SPELL_LEVEL; l++) levels.push(l);
+  const top = Math.max(base, castableMax(actor));
+  for (let l = base; l <= top; l++) levels.push(l);
   const opts = (list, sel) => list.map(([v, txt]) => `<option value="${v}" ${String(v) === String(sel) ? "selected" : ""}>${esc(txt)}</option>`).join("");
 
   const box = document.createElement("fieldset");
@@ -162,6 +176,7 @@ export async function runOvercharge(activity, config, messageConfig) {
   const plan = overchargePlan({ target, capRules: cap, slotLevel: chosen?.level ?? null });
   if (!plan.valid) return ui.notifications.warn(t(`Overcharge.Invalid.${plan.reason}`));
   if (target < (Number(item.system.level) || 1)) return ui.notifications.warn(t("Overcharge.Invalid.level"));
+  if (target > Math.max(Number(item.system.level) || 1, castableMax(actor))) return ui.notifications.warn(tf("Overcharge.Invalid.tooHigh", { max: castableMax(actor) }));
   if (plan.hd > hitDiceAvailable(actor)) return ui.notifications.warn(tf("Overcharge.NotEnoughWarn", { hd: plan.hd, have: hitDiceAvailable(actor) }));
 
   // Pay: the slot first (cap rules), then the dice.
